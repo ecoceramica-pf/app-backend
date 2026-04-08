@@ -27,5 +27,5 @@ WORKDIR /var/www/html
 # Expose port 8000 for artisan serve
 EXPOSE 8000
 
-# Start development server
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Install dependencies and start development server
+CMD sh -c "composer install --no-interaction && php artisan serve --host=0.0.0.0 --port=8000"
