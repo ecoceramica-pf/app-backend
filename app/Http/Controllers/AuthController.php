@@ -2,24 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use App\Http\Requests\RegisterUserRequest;
+use App\Http\Requests\LoginUserRequest;
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function register(RegisterUserRequest $request)
     {
-        $request->validate([
-            'nome' => 'required|string|max:120',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-            'tipo_perfil' => 'required|in:fabrica,coletor,admin',
-            'documento' => 'required|string|max:20',
-            'telefone' => 'required|string|max:20',
-        ]);
-
         $user = User::create([
             'nome' => $request->nome,
             'email' => $request->email,
@@ -31,45 +24,38 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return $this->success([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
-        ], 201);
+            'user' => new UserResource($user)
+        ], 'Usuário registrado com sucesso', 201);
     }
 
-    public function login(Request $request)
+    public function login(LoginUserRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
-
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['As credenciais fornecidas estão incorretas.'],
-            ]);
+            return $this->error('As credenciais fornecidas estão incorretas.', 401);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return $this->success([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
-        ]);
+            'user' => new UserResource($user)
+        ], 'Login realizado com sucesso');
     }
 
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        return $this->success(new UserResource($request->user()));
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'Logout realizado com sucesso']);
+        return $this->success(null, 'Logout realizado com sucesso');
     }
 }

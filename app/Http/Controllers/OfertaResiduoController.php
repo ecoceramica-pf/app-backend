@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\OfertaResiduo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Http\Requests\StoreOfertaResiduoRequest;
+use App\Http\Resources\OfertaResiduoResource;
+use App\Enums\OfertaStatus;
 
 class OfertaResiduoController extends Controller
 {
@@ -19,39 +22,35 @@ class OfertaResiduoController extends Controller
         if ($request->has('status')) {
             $query->where('status', $request->status);
         } else {
-            $query->where('status', 'disponivel');
+            $query->where('status', OfertaStatus::Disponivel);
         }
 
-        return response()->json($query->paginate(15));
+        $paginator = $query->paginate(15);
+        
+        return OfertaResiduoResource::collection($paginator);
     }
 
     public function minhasOfertas(Request $request)
     {
         $ofertas = $request->user()->ofertasResiduos()->with(['material', 'coleta'])->get();
-        return response()->json($ofertas);
+        return $this->success(OfertaResiduoResource::collection($ofertas));
     }
 
-    public function store(Request $request)
+    public function store(StoreOfertaResiduoRequest $request)
     {
-        $validated = $request->validate([
-            'endereco_id' => 'required|exists:enderecos,id',
-            'material_id' => 'required|exists:materiais,id',
-            'quantidade_kg' => 'nullable|numeric',
-            'quantidade_cacamba' => 'nullable|integer',
-        ]);
-
+        $validated = $request->validated();
         $validated['uuid'] = Str::uuid()->toString();
         $validated['data_publicacao'] = now();
-        $validated['status'] = 'disponivel';
+        $validated['status'] = OfertaStatus::Disponivel;
 
         $oferta = $request->user()->ofertasResiduos()->create($validated);
 
-        return response()->json($oferta, 201);
+        return $this->success(new OfertaResiduoResource($oferta), 'Oferta criada com sucesso', 201);
     }
 
-    public function show($id)
+    public function show(OfertaResiduo $oferta)
     {
-        $oferta = OfertaResiduo::with(['material', 'endereco', 'user', 'ofertaImagens'])->findOrFail($id);
-        return response()->json($oferta);
+        $oferta->load(['material', 'endereco', 'user', 'ofertaImagens']);
+        return $this->success(new OfertaResiduoResource($oferta));
     }
 }

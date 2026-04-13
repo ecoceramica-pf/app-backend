@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Enums\OfertaStatus;
 
 class OfertaResiduo extends Model
 {
@@ -25,6 +26,7 @@ class OfertaResiduo extends Model
 
     protected $casts = [
         'data_publicacao' => 'datetime',
+        'status' => OfertaStatus::class,
     ];
 
     public function user()

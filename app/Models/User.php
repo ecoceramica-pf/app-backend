@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Enums\TipoPerfil;
 
 #[Fillable(['nome', 'email', 'password', 'tipo_perfil', 'documento', 'telefone'])]
 #[Hidden(['password', 'remember_token'])]
@@ -29,6 +30,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'tipo_perfil' => TipoPerfil::class,
         ];
     }
 

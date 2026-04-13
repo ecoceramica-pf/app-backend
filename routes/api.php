@@ -32,12 +32,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // Ofertas
     Route::get('/ofertas', [OfertaResiduoController::class, 'index']);
     Route::post('/ofertas', [OfertaResiduoController::class, 'store']);
-    Route::get('/ofertas/{id}', [OfertaResiduoController::class, 'show']);
+    Route::get('/ofertas/{oferta}', [OfertaResiduoController::class, 'show']);
     Route::get('/minhas-ofertas', [OfertaResiduoController::class, 'minhasOfertas']);
 
     // Coletas
     Route::get('/minhas-coletas', [ColetaController::class, 'minhasColetas']);
-    Route::post('/ofertas/{id}/reservar', [ColetaController::class, 'reservar']);
-    Route::post('/coletas/{id}/confirmar-fabrica', [ColetaController::class, 'confirmarFabrica']);
-    Route::post('/coletas/{id}/confirmar-coletor', [ColetaController::class, 'confirmarColetor']);
+    Route::post('/ofertas/{oferta}/reservar', [ColetaController::class, 'reservar']);
+    Route::post('/coletas/{coleta}/confirmar-fabrica', [ColetaController::class, 'confirmarFabrica']);
+    Route::post('/coletas/{coleta}/confirmar-coletor', [ColetaController::class, 'confirmarColetor']);
 });
