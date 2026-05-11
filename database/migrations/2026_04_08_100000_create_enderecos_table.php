@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('enderecos', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('logradouro', 150);
-            $table->string('numero', 20);
-            $table->string('bairro', 80);
-            $table->string('cidade', 80);
-            $table->geometry('localizacao', subtype: 'point', srid: 4326)->nullable();
+            $table->id()->comment('Identificador único do endereço');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade')->comment('ID do usuário proprietário do endereço');
+            $table->string('logradouro', 150)->comment('Nome da rua, avenida, etc.');
+            $table->string('numero', 20)->comment('Número do imóvel');
+            $table->string('bairro', 80)->comment('Nome do bairro');
+            $table->string('cidade', 80)->comment('Nome da cidade');
+            $table->geometry('localizacao', subtype: 'point', srid: 4326)->nullable()->comment('Coordenadas geográficas do endereço');
             $table->timestamps();
             $table->softDeletes();
         });

@@ -18,26 +18,40 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/materiais', [MaterialController::class, 'index']);
 Route::get('/dashboard/impacto', [DashboardController::class, 'impacto']);
 
-// UUID imagem upload - caso queira manter publico com token curto ou autenticado
-Route::post('/ofertas/{uuid}/imagens', [OfertaImagemController::class, 'store']);
-
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/me', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Endereços
     Route::get('/enderecos', [EnderecoController::class, 'index']);
     Route::post('/enderecos', [EnderecoController::class, 'store']);
+    Route::get('/enderecos/{endereco}', [EnderecoController::class, 'show']);
+    Route::put('/enderecos/{endereco}', [EnderecoController::class, 'update']);
+    Route::delete('/enderecos/{endereco}', [EnderecoController::class, 'destroy']);
 
     // Ofertas
     Route::get('/ofertas', [OfertaResiduoController::class, 'index']);
     Route::post('/ofertas', [OfertaResiduoController::class, 'store']);
+    Route::post('/ofertas/{uuid}/imagens', [OfertaImagemController::class, 'store']);
     Route::get('/ofertas/{oferta}', [OfertaResiduoController::class, 'show']);
+    Route::put('/ofertas/{oferta}', [OfertaResiduoController::class, 'update']);
+    Route::delete('/ofertas/{oferta}', [OfertaResiduoController::class, 'destroy']);
     Route::get('/minhas-ofertas', [OfertaResiduoController::class, 'minhasOfertas']);
 
     // Coletas
     Route::get('/minhas-coletas', [ColetaController::class, 'minhasColetas']);
+    Route::get('/coletas/{coleta}', [ColetaController::class, 'show']);
     Route::post('/ofertas/{oferta}/reservar', [ColetaController::class, 'reservar']);
+    Route::post('/coletas/{coleta}/cancelar', [ColetaController::class, 'cancelar']);
     Route::post('/coletas/{coleta}/confirmar-fabrica', [ColetaController::class, 'confirmarFabrica']);
     Route::post('/coletas/{coleta}/confirmar-coletor', [ColetaController::class, 'confirmarColetor']);
+});
+
+// Admin
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::post('/materiais', [MaterialController::class, 'store']);
+    Route::get('/materiais/{material}', [MaterialController::class, 'show']);
+    Route::put('/materiais/{material}', [MaterialController::class, 'update']);
+    Route::delete('/materiais/{material}', [MaterialController::class, 'destroy']);
 });

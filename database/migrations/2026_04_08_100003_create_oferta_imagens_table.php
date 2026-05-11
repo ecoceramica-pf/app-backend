@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('oferta_imagens', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('oferta_residuo_id')->constrained('ofertas_residuos')->onDelete('cascade');
-            $table->string('imagem', 500);
-            $table->bigInteger('tamanho_arquivo');
+            $table->id()->comment('Identificador único da imagem');
+            $table->foreignId('oferta_residuo_id')->constrained('ofertas_residuos')->onDelete('cascade')->comment('Oferta a qual a imagem pertence');
+            $table->string('imagem', 500)->comment('URL ou caminho do arquivo de imagem');
+            $table->bigInteger('tamanho_arquivo')->comment('Tamanho da imagem em bytes');
             $table->timestamps();
             $table->softDeletes();
         });

@@ -4,20 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\OfertaResiduo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\StoreOfertaImagemRequest;
 
 class OfertaImagemController extends Controller
 {
-    public function store(Request $request, $uuid)
+    public function store(StoreOfertaImagemRequest $request, $uuid)
     {
         $oferta = OfertaResiduo::where('uuid', $uuid)->firstOrFail();
 
-        // Opcional: verificar se o usuário logado é o autor da oferta
-        // if ($oferta->user_id !== $request->user()->id) { abort(403); }
-
-        $request->validate([
-            'imagens' => 'required|array',
-            'imagens.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120' // 5MB max
-        ]);
+        Gate::authorize('update', $oferta);
 
         $savedImages = [];
 
@@ -33,7 +29,7 @@ class OfertaImagemController extends Controller
 
         return response()->json([
             'message' => 'Imagens salvas com sucesso',
-            'imagens' => $savedImages
+            'imagens' => \App\Http\Resources\OfertaImagemResource::collection(collect($savedImages))
         ], 201);
     }
 }

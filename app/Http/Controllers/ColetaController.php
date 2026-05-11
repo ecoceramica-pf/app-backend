@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Coleta;
 use App\Models\OfertaResiduo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use App\Enums\OfertaStatus;
 use App\Http\Resources\ColetaResource;
 
@@ -35,6 +36,8 @@ class ColetaController extends Controller
 
     public function confirmarFabrica(Request $request, Coleta $coleta)
     {
+        Gate::authorize('confirmarFabrica', $coleta);
+
         $coleta->update(['confirmacao_fabrica' => now()]);
 
         if ($coleta->confirmacao_coletor) {
@@ -47,9 +50,7 @@ class ColetaController extends Controller
 
     public function confirmarColetor(Request $request, Coleta $coleta)
     {
-        if ($coleta->coletor_id !== $request->user()->id) {
-            return $this->error('Acesso não autorizado.', 403);
-        }
+        Gate::authorize('confirmarColetor', $coleta);
 
         $coleta->update(['confirmacao_coletor' => now()]);
 
@@ -59,5 +60,25 @@ class ColetaController extends Controller
         }
 
         return $this->success(new ColetaResource($coleta), 'Confirmação do coletor registrada.');
+    }
+
+    public function show(Request $request, Coleta $coleta)
+    {
+        Gate::authorize('view', $coleta);
+        
+        $coleta->load('ofertaResiduo.material');
+        return $this->success(new ColetaResource($coleta));
+    }
+
+    public function cancelar(Request $request, Coleta $coleta)
+    {
+        Gate::authorize('cancelar', $coleta);
+
+        // Voltar a oferta para disponível
+        $coleta->ofertaResiduo()->update(['status' => OfertaStatus::Disponivel]);
+        
+        $coleta->delete();
+
+        return $this->success(null, 'Coleta cancelada com sucesso.');
     }
 }

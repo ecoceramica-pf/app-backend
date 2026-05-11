@@ -1,0 +1,761 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-04-27T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "wrk_1",
+      "parentId": null,
+      "modified": 1,
+      "created": 1,
+      "name": "Ecocerâmica API",
+      "description": "Rotas do sistema Ecocerâmica para gerenciamento de descartes e coletas.",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_1",
+      "parentId": "wrk_1",
+      "modified": 1,
+      "created": 1,
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8000/api",
+        "token": "seu-token-aqui-apos-o-login"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "token"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1,
+      "_type": "environment"
+    },
+    {
+      "_id": "fld_auth",
+      "parentId": "wrk_1",
+      "modified": 1,
+      "created": 1,
+      "name": "Autenticação",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -100,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_register",
+      "parentId": "fld_auth",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/register",
+      "name": "Register",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Fábrica Teste\",\n  \"email\": \"fabrica@teste.com\",\n  \"password\": \"123456\",\n  \"tipo_perfil\": \"fabrica\",\n  \"documento\": \"12345678000199\",\n  \"telefone\": \"11999999999\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -100,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_login",
+      "parentId": "fld_auth",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/login",
+      "name": "Login",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"fabrica@teste.com\",\n  \"password\": \"123456\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -90,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_me",
+      "parentId": "fld_auth",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/me",
+      "name": "Me",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -80,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_update_profile",
+      "parentId": "fld_auth",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/me",
+      "name": "Atualizar Perfil",
+      "description": "",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Fábrica Atualizada\",\n  \"telefone\": \"11988888888\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -75,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_logout",
+      "parentId": "fld_auth",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/logout",
+      "name": "Logout",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -70,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "fld_enderecos",
+      "parentId": "wrk_1",
+      "modified": 1,
+      "created": 1,
+      "name": "Endereços",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -95,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_end_lista",
+      "parentId": "fld_enderecos",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/enderecos",
+      "name": "Listar Endereços",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -100,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_end_criar",
+      "parentId": "fld_enderecos",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/enderecos",
+      "name": "Cadastrar Endereço",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"logradouro\": \"Rua da Fábrica Principal\",\n  \"numero\": \"123\",\n  \"bairro\": \"Centro\",\n  \"cidade\": \"Porto Ferreira\",\n  \"estado\": \"SP\",\n  \"cep\": \"13660-000\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -90,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_end_detalhe",
+      "parentId": "fld_enderecos",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/enderecos/1",
+      "name": "Detalhar Endereço",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -80,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_end_atualizar",
+      "parentId": "fld_enderecos",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/enderecos/1",
+      "name": "Atualizar Endereço",
+      "description": "",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"logradouro\": \"Rua Nova Atualizada\",\n  \"numero\": \"456\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -70,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_end_excluir",
+      "parentId": "fld_enderecos",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/enderecos/1",
+      "name": "Excluir Endereço",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -60,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "fld_ofertas",
+      "parentId": "wrk_1",
+      "modified": 1,
+      "created": 1,
+      "name": "Ofertas de Resíduos",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -90,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_of_lista",
+      "parentId": "fld_ofertas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/ofertas",
+      "name": "Listar Mural",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -100,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_of_criar",
+      "parentId": "fld_ofertas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/ofertas",
+      "name": "Criar Oferta (Fábrica)",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"endereco_id\": 1,\n  \"material_id\": 1,\n  \"quantidade_kg\": 150.50,\n  \"quantidade_cacamba\": null\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -90,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_of_detalhe",
+      "parentId": "fld_ofertas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/ofertas/1",
+      "name": "Detalhar Oferta",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -85,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_of_atualizar",
+      "parentId": "fld_ofertas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/ofertas/1",
+      "name": "Atualizar Oferta",
+      "description": "",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"quantidade_kg\": 200,\n  \"observacoes\": \"Material atualizado\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -83,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_of_excluir",
+      "parentId": "fld_ofertas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/ofertas/1",
+      "name": "Excluir Oferta",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -81,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_of_upload",
+      "parentId": "fld_ofertas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/ofertas/CÓDIGO-UUID-AQUI/imagens",
+      "name": "Upload Imagem Oferta",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "imagens[]",
+            "value": "",
+            "id": "pair_0",
+            "type": "file"
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -80,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_of_minhas",
+      "parentId": "fld_ofertas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/minhas-ofertas",
+      "name": "Minhas Ofertas (Fábrica)",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -70,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "fld_coletas",
+      "parentId": "wrk_1",
+      "modified": 1,
+      "created": 1,
+      "name": "Coletas (Artesão / Coletor)",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -80,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_col_reservar",
+      "parentId": "fld_coletas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/ofertas/1/reservar",
+      "name": "Reservar Coleta",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -100,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_col_minhas",
+      "parentId": "fld_coletas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/minhas-coletas",
+      "name": "Minhas Coletas",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -90,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_col_detalhe",
+      "parentId": "fld_coletas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/coletas/1",
+      "name": "Detalhar Coleta",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -85,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_col_cancelar",
+      "parentId": "fld_coletas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/coletas/1/cancelar",
+      "name": "Cancelar Coleta",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -83,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_col_conf_fabrica",
+      "parentId": "fld_coletas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/coletas/1/confirmar-fabrica",
+      "name": "Confirmar Retirada - Fábrica",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -80,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_col_conf_coletor",
+      "parentId": "fld_coletas",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/coletas/1/confirmar-coletor",
+      "name": "Confirmar Retirada - Coletor",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -70,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "fld_admin",
+      "parentId": "wrk_1",
+      "modified": 1,
+      "created": 1,
+      "name": "Admin - Materiais",
+      "description": "Rotas administrativas protegidas pelo middleware admin.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -60,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_mat_lista",
+      "parentId": "fld_admin",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/materiais",
+      "name": "Listar Materiais Ativos (Público)",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -100,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_mat_criar",
+      "parentId": "fld_admin",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/materiais",
+      "name": "Criar Material (Admin)",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Caco de Cerâmica\",\n  \"descricao\": \"Resíduo de cerâmica queimada\",\n  \"ativo\": true,\n  \"cortante\": true\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -90,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_mat_detalhe",
+      "parentId": "fld_admin",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/materiais/1",
+      "name": "Detalhar Material (Admin)",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -80,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_mat_atualizar",
+      "parentId": "fld_admin",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/materiais/1",
+      "name": "Atualizar Material (Admin)",
+      "description": "",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Caco de Cerâmica Atualizado\",\n  \"cortante\": false\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -70,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_mat_excluir",
+      "parentId": "fld_admin",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/materiais/1",
+      "name": "Excluir Material (Admin)",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
+      "metaSortKey": -60,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "fld_outros",
+      "parentId": "wrk_1",
+      "modified": 1,
+      "created": 1,
+      "name": "Dashboard e Informações",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -50,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_dash_impacto",
+      "parentId": "fld_outros",
+      "modified": 1,
+      "created": 1,
+      "url": "{{ _.base_url }}/dashboard/impacto",
+      "name": "Dashboard Impacto (Público)",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -100,
+      "isPrivate": false,
+      "_type": "request"
+    }
+  ]
+}

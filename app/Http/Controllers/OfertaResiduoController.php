@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\OfertaResiduo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\StoreOfertaResiduoRequest;
 use App\Http\Resources\OfertaResiduoResource;
 use App\Enums\OfertaStatus;
@@ -52,5 +53,23 @@ class OfertaResiduoController extends Controller
     {
         $oferta->load(['material', 'endereco', 'user', 'ofertaImagens']);
         return $this->success(new OfertaResiduoResource($oferta));
+    }
+
+    public function update(\App\Http\Requests\UpdateOfertaResiduoRequest $request, OfertaResiduo $oferta)
+    {
+        Gate::authorize('update', $oferta);
+
+        $oferta->update($request->validated());
+
+        return $this->success(new OfertaResiduoResource($oferta), 'Oferta atualizada com sucesso.');
+    }
+
+    public function destroy(Request $request, OfertaResiduo $oferta)
+    {
+        Gate::authorize('delete', $oferta);
+
+        $oferta->delete();
+
+        return $this->success(null, 'Oferta excluída com sucesso.');
     }
 }

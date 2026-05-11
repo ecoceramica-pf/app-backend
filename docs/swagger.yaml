@@ -1,0 +1,608 @@
+openapi: 3.0.0
+info:
+  title: Ecocerâmica API
+  description: API RESTful do sistema Ecocerâmica para gerenciamento de descartes e coletas de resíduos cerâmicos em Porto Ferreira.
+  version: 2.0.0
+servers:
+  - url: http://localhost:8000/api
+    description: Ambiente de Desenvolvimento
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+
+paths:
+  # ========== AUTENTICAÇÃO ==========
+  /register:
+    post:
+      tags:
+        - Autenticação
+      summary: Registrar novo usuário
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nome, email, password, tipo_perfil, documento, telefone]
+              properties:
+                nome:
+                  type: string
+                  example: "Fábrica Teste"
+                email:
+                  type: string
+                  example: "fabrica@teste.com"
+                password:
+                  type: string
+                  example: "123456"
+                tipo_perfil:
+                  type: string
+                  enum: [fabrica, coletor]
+                  example: "fabrica"
+                documento:
+                  type: string
+                  example: "12345678000199"
+                telefone:
+                  type: string
+                  example: "11999999999"
+      responses:
+        '201':
+          description: Usuário registrado com sucesso
+        '422':
+          description: Erro de validação
+
+  /login:
+    post:
+      tags:
+        - Autenticação
+      summary: Login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: "fabrica@teste.com"
+                password:
+                  type: string
+                  example: "123456"
+      responses:
+        '200':
+          description: Login realizado com sucesso
+        '401':
+          description: Credenciais inválidas
+
+  /me:
+    get:
+      tags:
+        - Autenticação
+      summary: Dados do usuário logado
+      responses:
+        '200':
+          description: Dados do usuário autenticado
+        '401':
+          description: Não autenticado
+    put:
+      tags:
+        - Autenticação
+      summary: Atualizar perfil do usuário logado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                  example: "Fábrica Atualizada"
+                telefone:
+                  type: string
+                  example: "11988888888"
+                password:
+                  type: string
+                  example: "novaSenha123"
+      responses:
+        '200':
+          description: Perfil atualizado com sucesso
+        '422':
+          description: Erro de validação
+
+  /logout:
+    post:
+      tags:
+        - Autenticação
+      summary: Logout
+      responses:
+        '200':
+          description: Logout realizado com sucesso
+
+  # ========== ENDEREÇOS ==========
+  /enderecos:
+    get:
+      tags:
+        - Endereços
+      summary: Listar endereços do usuário
+      responses:
+        '200':
+          description: Lista de endereços do usuário autenticado
+    post:
+      tags:
+        - Endereços
+      summary: Cadastrar endereço
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [logradouro, numero, bairro, cidade]
+              properties:
+                logradouro:
+                  type: string
+                  example: "Rua da Fábrica Principal"
+                numero:
+                  type: string
+                  example: "123"
+                bairro:
+                  type: string
+                  example: "Centro"
+                cidade:
+                  type: string
+                  example: "Porto Ferreira"
+                estado:
+                  type: string
+                  example: "SP"
+                cep:
+                  type: string
+                  example: "13660-000"
+                complemento:
+                  type: string
+                  example: "Galpão 2"
+      responses:
+        '201':
+          description: Endereço cadastrado com sucesso
+        '422':
+          description: Erro de validação
+
+  /enderecos/{id}:
+    get:
+      tags:
+        - Endereços
+      summary: Detalhar endereço
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes do endereço
+        '403':
+          description: Acesso não autorizado
+        '404':
+          description: Endereço não encontrado
+    put:
+      tags:
+        - Endereços
+      summary: Atualizar endereço
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                logradouro:
+                  type: string
+                  example: "Rua Nova Atualizada"
+                numero:
+                  type: string
+                  example: "456"
+      responses:
+        '200':
+          description: Endereço atualizado com sucesso
+        '403':
+          description: Acesso não autorizado
+    delete:
+      tags:
+        - Endereços
+      summary: Excluir endereço
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Endereço excluído com sucesso
+        '403':
+          description: Acesso não autorizado
+
+  # ========== OFERTAS DE RESÍDUOS ==========
+  /ofertas:
+    get:
+      tags:
+        - Ofertas de Resíduos
+      summary: Listar mural de ofertas
+      parameters:
+        - name: material_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filtrar por tipo de material
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [Disponivel, EmProcesso, Concluido]
+          description: Filtrar por status (padrão Disponivel)
+      responses:
+        '200':
+          description: Lista paginada de ofertas
+    post:
+      tags:
+        - Ofertas de Resíduos
+      summary: Criar oferta (Fábrica)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [endereco_id, material_id]
+              properties:
+                endereco_id:
+                  type: integer
+                  example: 1
+                material_id:
+                  type: integer
+                  example: 1
+                quantidade_kg:
+                  type: number
+                  example: 150.5
+                quantidade_cacamba:
+                  type: integer
+                  nullable: true
+                observacoes:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Oferta criada com sucesso
+
+  /ofertas/{id}:
+    get:
+      tags:
+        - Ofertas de Resíduos
+      summary: Detalhar oferta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes da oferta com imagens e material
+    put:
+      tags:
+        - Ofertas de Resíduos
+      summary: Atualizar oferta (apenas se Disponível)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                endereco_id:
+                  type: integer
+                material_id:
+                  type: integer
+                quantidade_kg:
+                  type: number
+                  example: 200
+                quantidade_cacamba:
+                  type: integer
+                observacoes:
+                  type: string
+                  example: "Material atualizado"
+      responses:
+        '200':
+          description: Oferta atualizada com sucesso
+        '403':
+          description: Acesso não autorizado ou oferta em processo/concluída
+    delete:
+      tags:
+        - Ofertas de Resíduos
+      summary: Excluir oferta (apenas se Disponível)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Oferta excluída com sucesso
+        '403':
+          description: Acesso não autorizado ou oferta em processo/concluída
+
+  /ofertas/{uuid}/imagens:
+    post:
+      tags:
+        - Ofertas de Resíduos
+      summary: Upload de imagens da oferta
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+          description: UUID da oferta
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                imagens[]:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Imagens salvas com sucesso
+        '403':
+          description: Acesso não autorizado
+        '422':
+          description: Erro de validação (formato/tamanho)
+
+  /minhas-ofertas:
+    get:
+      tags:
+        - Ofertas de Resíduos
+      summary: Minhas ofertas (Fábrica)
+      responses:
+        '200':
+          description: Lista de ofertas do usuário autenticado
+
+  # ========== COLETAS ==========
+  /ofertas/{id}/reservar:
+    post:
+      tags:
+        - Coletas
+      summary: Reservar coleta de uma oferta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Coleta reservada com sucesso
+        '400':
+          description: Oferta não disponível para coleta
+
+  /minhas-coletas:
+    get:
+      tags:
+        - Coletas
+      summary: Minhas coletas (Coletor)
+      responses:
+        '200':
+          description: Lista de coletas do coletor autenticado
+
+  /coletas/{id}:
+    get:
+      tags:
+        - Coletas
+      summary: Detalhar coleta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes da coleta
+        '403':
+          description: Acesso não autorizado
+
+  /coletas/{id}/cancelar:
+    post:
+      tags:
+        - Coletas
+      summary: Cancelar coleta (Coletor)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Coleta cancelada e oferta retorna a Disponível
+        '403':
+          description: Acesso não autorizado ou coleta já concluída
+
+  /coletas/{id}/confirmar-fabrica:
+    post:
+      tags:
+        - Coletas
+      summary: Confirmar retirada - Fábrica
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Confirmação da fábrica registrada
+        '403':
+          description: Acesso não autorizado
+
+  /coletas/{id}/confirmar-coletor:
+    post:
+      tags:
+        - Coletas
+      summary: Confirmar retirada - Coletor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Confirmação do coletor registrada
+        '403':
+          description: Acesso não autorizado
+
+  # ========== MATERIAIS (PÚBLICO + ADMIN) ==========
+  /materiais:
+    get:
+      tags:
+        - Materiais (Admin)
+      summary: Listar materiais ativos (público)
+      security: []
+      responses:
+        '200':
+          description: Lista de materiais ativos
+    post:
+      tags:
+        - Materiais (Admin)
+      summary: Criar material (Admin)
+      description: Requer autenticação com perfil admin.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nome, descricao]
+              properties:
+                nome:
+                  type: string
+                  example: "Caco de Cerâmica"
+                descricao:
+                  type: string
+                  example: "Resíduo de cerâmica queimada"
+                ativo:
+                  type: boolean
+                  example: true
+                cortante:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Material criado com sucesso
+        '403':
+          description: Acesso negado (não é admin)
+
+  /materiais/{id}:
+    get:
+      tags:
+        - Materiais (Admin)
+      summary: Detalhar material (Admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes do material
+        '403':
+          description: Acesso negado
+    put:
+      tags:
+        - Materiais (Admin)
+      summary: Atualizar material (Admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                  example: "Caco de Cerâmica Atualizado"
+                descricao:
+                  type: string
+                ativo:
+                  type: boolean
+                cortante:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: Material atualizado com sucesso
+        '403':
+          description: Acesso negado
+    delete:
+      tags:
+        - Materiais (Admin)
+      summary: Excluir material (Admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Material excluído com sucesso
+        '403':
+          description: Acesso negado
+
+  # ========== DASHBOARD ==========
+  /dashboard/impacto:
+    get:
+      tags:
+        - Dashboard
+      summary: Dashboard de impacto ambiental (público)
+      security: []
+      responses:
+        '200':
+          description: Métricas de impacto ambiental
