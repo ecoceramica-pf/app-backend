@@ -47,11 +47,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/coletas/{coleta}/confirmar-fabrica', [ColetaController::class, 'confirmarFabrica']);
     Route::post('/coletas/{coleta}/confirmar-coletor', [ColetaController::class, 'confirmarColetor']);
 });
-
-// Admin
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::post('/materiais', [MaterialController::class, 'store']);
-    Route::get('/materiais/{material}', [MaterialController::class, 'show']);
-    Route::put('/materiais/{material}', [MaterialController::class, 'update']);
-    Route::delete('/materiais/{material}', [MaterialController::class, 'destroy']);
-});

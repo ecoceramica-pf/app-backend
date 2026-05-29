@@ -1,58 +1,83 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Backend API (Laravel)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Este é o backend do Projeto Integrador, desenvolvido utilizando o framework PHP **Laravel**.
 
-## About Laravel
+## O que é Laravel?
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Laravel é um framework PHP livre e de código aberto para o desenvolvimento de sistemas web. Ele possui uma sintaxe elegante e expressiva, projetado para facilitar tarefas comuns em projetos como autenticação, roteamento, sessões e cache. O Laravel foca na experiência do desenvolvedor, oferecendo ferramentas poderosas e abstraindo a complexidade de rotinas comuns do dia a dia.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Ponto Inicial e Rotas
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Ponto Inicial da Aplicação:** O arquivo de entrada para todas as requisições é o `public/index.php`. Este arquivo carrega o framework e processa a requisição do usuário. A inicialização real do framework fica em `bootstrap/app.php`.
+- **Rotas:** O mapeamento das URLs da aplicação pode ser encontrado dentro da pasta `routes/`.
+  - **`routes/api.php`**: Contém as rotas para a API (sem estado, autenticadas via tokens, geralmente retornando JSON).
+  - **`routes/web.php`**: Contém as rotas web tradicionais (com suporte a cookies e sessão).
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Como rodar o projeto usando Docker
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+O projeto possui um ambiente Docker configurado (via `Dockerfile` e `docker-compose.yml`) que inclui a aplicação e um banco de dados MySQL.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+1. **Subir a infraestrutura:**
+   Abra o terminal na pasta `backend` e execute:
+   ```bash
+   docker-compose up -d --build
+   ```
+   *Esse comando constrói a imagem e inicia os containers em segundo plano. Os containers criados serão o `backend_app` (aplicação) e o `db_app` (MySQL).*
 
-## Agentic Development
+2. **Acessar o container e preparar o projeto:**
+   Se for a primeira vez rodando, é recomendável acessar o container para instalar dependências e rodar as migrações:
+   ```bash
+   docker exec -it backend_app bash
+   # Dentro do container, execute:
+   composer setup
+   ```
+   *(Opcional) O comando `composer setup` já cuida do `composer install`, `.env`, `key:generate` e migrações.*
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+A aplicação ficará disponível na porta 8000: `http://localhost:8000`
 
-```bash
-composer require laravel/boost --dev
+---
 
-php artisan boost:install
-```
+## Como rodar o projeto localmente (Na Máquina)
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Caso não deseje utilizar Docker, é necessário ter o **PHP (>= 8.3)**, **Composer**, **Node.js** e o **MySQL** instalados em sua máquina.
 
-## Contributing
+1. **Preparação automática do ambiente:**
+   Este projeto possui um script customizado no Composer para configurar o básico. No terminal, execute:
+   ```bash
+   composer setup
+   ```
+   Esse script automaticamente:
+   - Roda `composer install`.
+   - Copia o `.env.example` para `.env` (certifique-se de configurar as credenciais do banco de dados no arquivo `.env` gerado).
+   - Gera a chave da aplicação (`php artisan key:generate`).
+   - Roda as migrações de banco (`php artisan migrate`).
+   - Instala as dependências Node e compila o front/assets (`npm install` e `npm run build`).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+2. **Iniciar o servidor de desenvolvimento:**
+   Após tudo configurado, suba o servidor local utilizando:
+   ```bash
+   composer dev
+   ```
+   *Ou o comando clássico do Laravel:*
+   ```bash
+   php artisan serve
+   ```
 
-## Code of Conduct
+A aplicação ficará disponível em `http://localhost:8000` ou outra porta informada no terminal.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## Principais Comandos (Artisan)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+O Artisan é a interface de linha de comando (CLI) do Laravel. Alguns dos comandos mais úteis são:
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- `php artisan serve`: Inicia um servidor PHP de desenvolvimento local.
+- `php artisan list`: Mostra todos os comandos Artisan disponíveis.
+- `php artisan make:controller NomeController`: Cria um controlador.
+- `php artisan make:model NomeModel -m`: Cria uma model já com seu arquivo de migration.
+- `php artisan migrate`: Roda as migrações (cria as tabelas no banco de dados).
+- `php artisan migrate:rollback`: Desfaz a última migração.
+- `php artisan route:list`: Lista todas as rotas registradas e ativas na aplicação.
+- `php artisan tinker`: Abre um terminal interativo (REPL) para rodar código PHP e testar a base de dados em tempo real.

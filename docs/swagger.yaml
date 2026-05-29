@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: Ecocerâmica API
   description: API RESTful do sistema Ecocerâmica para gerenciamento de descartes e coletas de resíduos cerâmicos em Porto Ferreira.
-  version: 2.0.0
+  version: 2.1.0
 servers:
   - url: http://localhost:8000/api
     description: Ambiente de Desenvolvimento
@@ -491,21 +491,352 @@ paths:
         '403':
           description: Acesso não autorizado
 
-  # ========== MATERIAIS (PÚBLICO + ADMIN) ==========
+  # ========== MATERIAIS (PÚBLICO) ==========
   /materiais:
     get:
       tags:
-        - Materiais (Admin)
+        - Materiais
       summary: Listar materiais ativos (público)
       security: []
       responses:
         '200':
           description: Lista de materiais ativos
+
+  # ========== DASHBOARD - ADMIN (/api/admin) ==========
+  /admin/dashboard/metricas:
+    get:
+      tags:
+        - Admin - Dashboard
+      summary: Métricas consolidadas da plataforma
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/dashboard/metricas`
+        Retorna contadores agrupados de usuários, ofertas, coletas e impacto ambiental.
+      responses:
+        '200':
+          description: Métricas consolidadas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usuarios:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      fabricas:
+                        type: integer
+                      coletores:
+                        type: integer
+                      admins:
+                        type: integer
+                      inativos:
+                        type: integer
+                  ofertas:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      disponiveis:
+                        type: integer
+                      em_processo:
+                        type: integer
+                      concluidas:
+                        type: integer
+                      moderadas:
+                        type: integer
+                  coletas:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      pendentes:
+                        type: integer
+                      concluidas:
+                        type: integer
+                      canceladas:
+                        type: integer
+                  impacto:
+                    type: object
+                    properties:
+                      total_kg:
+                        type: number
+                        format: float
+                      total_cacambas:
+                        type: integer
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado (não é admin)
+
+  # ========== USUÁRIOS - ADMIN (/api/admin) ==========
+  /admin/usuarios:
+    get:
+      tags:
+        - Admin - Usuários
+      summary: Listar usuários
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/usuarios`
+        Suporta os filtros opcionais `?tipo_perfil=fabrica|coletor|admin` e `?status=ativo|inativo`.
+      parameters:
+        - name: tipo_perfil
+          in: query
+          description: Filtrar por tipo de perfil
+          required: false
+          schema:
+            type: string
+            enum: [fabrica, coletor, admin]
+        - name: status
+          in: query
+          description: Filtrar por status do usuário
+          required: false
+          schema:
+            type: string
+            enum: [ativo, inativo]
+      responses:
+        '200':
+          description: Lista paginada de usuários
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado (não é admin)
+
+  /admin/usuarios/{id}:
+    get:
+      tags:
+        - Admin - Usuários
+      summary: Detalhar usuário
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/usuarios/{id}`
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes do usuário
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado
+        '404':
+          description: Usuário não encontrado
+
+  /admin/usuarios/{id}/status:
+    put:
+      tags:
+        - Admin - Usuários
+      summary: Alterar status do usuário (Ativar/Inativar)
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/usuarios/{id}/status`
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ativo]
+              properties:
+                ativo:
+                  type: boolean
+                  description: "true para ativar, false para inativar (banir)"
+      responses:
+        '200':
+          description: Status atualizado com sucesso
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado
+        '404':
+          description: Usuário não encontrado
+
+  # ========== OFERTAS - ADMIN (/api/admin) ==========
+  /admin/ofertas:
+    get:
+      tags:
+        - Admin - Ofertas
+      summary: Listar todas as ofertas (Moderação)
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/ofertas`
+        Lista ofertas com filtro opcional de material, status ou se já foram moderadas.
+      parameters:
+        - name: material_id
+          in: query
+          description: Filtrar por ID do material
+          required: false
+          schema:
+            type: integer
+        - name: status
+          in: query
+          description: Filtrar por status da oferta
+          required: false
+          schema:
+            type: string
+            enum: [Disponível, Em Processo de Coleta, Concluido, Cancelado]
+        - name: moderadas
+          in: query
+          description: Mostrar apenas ofertas já moderadas (apagadas)
+          required: false
+          schema:
+            type: string
+            enum: ['true', 'false']
+      responses:
+        '200':
+          description: Lista paginada de ofertas
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado (não é admin)
+
+  /admin/ofertas/{id}:
+    get:
+      tags:
+        - Admin - Ofertas
+      summary: Detalhar oferta (Moderação)
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/ofertas/{id}`
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes da oferta, mesmo se moderada
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado
+        '404':
+          description: Oferta não encontrada
+    delete:
+      tags:
+        - Admin - Ofertas
+      summary: Moderar (excluir) oferta
+      description: |
+        Requer autenticação com perfil admin.
+        Remove uma oferta do mural público.
+        Prefixo real: `/api/admin/ofertas/{id}`
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Oferta moderada com sucesso
+        '400':
+          description: Oferta já excluída
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado
+        '404':
+          description: Oferta não encontrada
+
+  /admin/ofertas/{id}/restore:
     post:
       tags:
-        - Materiais (Admin)
-      summary: Criar material (Admin)
-      description: Requer autenticação com perfil admin.
+        - Admin - Ofertas
+      summary: Restaurar oferta moderada
+      description: |
+        Requer autenticação com perfil admin.
+        Devolve a oferta ao mural público.
+        Prefixo real: `/api/admin/ofertas/{id}/restore`
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Oferta restaurada com sucesso
+        '400':
+          description: Oferta não está excluída
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado
+        '404':
+          description: Oferta não encontrada
+
+  # ========== COLETAS - ADMIN (/api/admin) ==========
+  /admin/coletas:
+    get:
+      tags:
+        - Admin - Coletas
+      summary: Listar todas as coletas (Auditoria)
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/coletas`
+        Retorna a visão global de todas as transações de coleta, com filtro opcional por status.
+      parameters:
+        - name: status
+          in: query
+          description: Filtrar por status da coleta
+          required: false
+          schema:
+            type: string
+            enum: [pendente, concluido, cancelado]
+      responses:
+        '200':
+          description: Lista paginada de coletas com relacionamentos (coletor, fábrica, material)
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado (não é admin)
+
+  /admin/coletas/{id}:
+    get:
+      tags:
+        - Admin - Coletas
+      summary: Detalhar coleta (Auditoria)
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/coletas/{id}`
+        Retorna todos os detalhes da transação, incluindo confirmações de ambos os lados.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes completos da coleta (coletor, fábrica, material, endereço, imagens)
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado
+        '404':
+          description: Coleta não encontrada
+
+  # ========== MATERIAIS - ADMIN (/api/admin) ==========
+  /admin/materiais:
+    post:
+      tags:
+        - Admin - Materiais
+      summary: Criar material
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/materiais`
       requestBody:
         required: true
         content:
@@ -529,14 +860,19 @@ paths:
       responses:
         '201':
           description: Material criado com sucesso
+        '401':
+          description: Não autenticado
         '403':
           description: Acesso negado (não é admin)
 
-  /materiais/{id}:
+  /admin/materiais/{id}:
     get:
       tags:
-        - Materiais (Admin)
-      summary: Detalhar material (Admin)
+        - Admin - Materiais
+      summary: Detalhar material
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/materiais/{id}`
       parameters:
         - name: id
           in: path
@@ -546,12 +882,19 @@ paths:
       responses:
         '200':
           description: Detalhes do material
+        '401':
+          description: Não autenticado
         '403':
           description: Acesso negado
+        '404':
+          description: Material não encontrado
     put:
       tags:
-        - Materiais (Admin)
-      summary: Atualizar material (Admin)
+        - Admin - Materiais
+      summary: Atualizar material
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/materiais/{id}`
       parameters:
         - name: id
           in: path
@@ -578,12 +921,17 @@ paths:
       responses:
         '200':
           description: Material atualizado com sucesso
+        '401':
+          description: Não autenticado
         '403':
           description: Acesso negado
     delete:
       tags:
-        - Materiais (Admin)
-      summary: Excluir material (Admin)
+        - Admin - Materiais
+      summary: Excluir material
+      description: |
+        Requer autenticação com perfil admin.
+        Prefixo real: `/api/admin/materiais/{id}`
       parameters:
         - name: id
           in: path
@@ -593,6 +941,8 @@ paths:
       responses:
         '200':
           description: Material excluído com sucesso
+        '401':
+          description: Não autenticado
         '403':
           description: Acesso negado
 
