@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('numero', 20)->comment('Número do imóvel');
             $table->string('bairro', 80)->comment('Nome do bairro');
             $table->string('cidade', 80)->comment('Nome da cidade');
-            $table->geometry('localizacao', subtype: 'point', srid: 4326)->nullable()->comment('Coordenadas geográficas do endereço');
+            // $table->geometry('localizacao', subtype: 'point', srid: 4326)->nullable()->comment('Coordenadas geográficas do endereço');
+            $table->geometry('localizacao', subtype: 'point')->nullable()->comment('Coordenadas geográficas do endereço');
             $table->timestamps();
             $table->softDeletes();
         });
