@@ -13,7 +13,7 @@ class ColetaController extends Controller
 {
     public function minhasColetas(Request $request)
     {
-        $coletas = $request->user()->coletas()->with('ofertaResiduo.material')->get();
+        $coletas = $request->user()->coletas()->with(['ofertaResiduo.material', 'ofertaResiduo.endereco', 'ofertaResiduo.user'])->get();
         return $this->success(ColetaResource::collection($coletas));
     }
 

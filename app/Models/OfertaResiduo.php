@@ -20,6 +20,7 @@ class OfertaResiduo extends Model
         'material_id',
         'quantidade_kg',
         'quantidade_cacamba',
+        'observacoes',
         'data_publicacao',
         'status'
     ];
