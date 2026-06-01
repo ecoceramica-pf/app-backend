@@ -105,6 +105,10 @@ class ColetaController extends Controller
     {
         Gate::authorize('confirmarFabrica', $coleta);
 
+        if ($coleta->status !== 'agendado') {
+            return $this->error('A coleta precisa estar aprovada/agendada para ser confirmada.', 400);
+        }
+
         $coleta->update(['confirmacao_fabrica' => now()]);
 
         if ($coleta->confirmacao_coletor) {
@@ -118,6 +122,10 @@ class ColetaController extends Controller
     public function confirmarColetor(Request $request, Coleta $coleta)
     {
         Gate::authorize('confirmarColetor', $coleta);
+
+        if ($coleta->status !== 'agendado') {
+            return $this->error('A coleta precisa estar aprovada/agendada para ser confirmada.', 400);
+        }
 
         $coleta->update(['confirmacao_coletor' => now()]);
 
@@ -147,5 +155,34 @@ class ColetaController extends Controller
         $coleta->delete();
 
         return $this->success(null, 'Coleta cancelada com sucesso.');
+    }
+
+    public function aprovar(Request $request, Coleta $coleta)
+    {
+        Gate::authorize('aprovar', $coleta);
+
+        if ($coleta->status !== 'pendente') {
+            return $this->error('Apenas coletas pendentes podem ser aprovadas.', 400);
+        }
+
+        $coleta->update(['status' => 'agendado']);
+
+        return $this->success(new ColetaResource($coleta), 'Proposta de coleta aprovada.');
+    }
+
+    public function recusar(Request $request, Coleta $coleta)
+    {
+        Gate::authorize('recusar', $coleta);
+
+        if ($coleta->status !== 'pendente') {
+            return $this->error('Apenas coletas pendentes podem ser recusadas.', 400);
+        }
+
+        $coleta->update(['status' => 'recusado']);
+        
+        // Voltar a oferta para disponível
+        $coleta->ofertaResiduo()->update(['status' => OfertaStatus::Disponivel]);
+
+        return $this->success(new ColetaResource($coleta), 'Proposta de coleta recusada.');
     }
 }

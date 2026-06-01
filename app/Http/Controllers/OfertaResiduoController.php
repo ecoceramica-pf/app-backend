@@ -33,7 +33,7 @@ class OfertaResiduoController extends Controller
 
     public function minhasOfertas(Request $request)
     {
-        $ofertas = $request->user()->ofertasResiduos()->with(['material', 'endereco', 'coleta', 'user'])->get();
+        $ofertas = $request->user()->ofertasResiduos()->with(['material', 'endereco', 'coleta.coletor', 'user'])->get();
         return $this->success(OfertaResiduoResource::collection($ofertas));
     }
 
@@ -51,7 +51,7 @@ class OfertaResiduoController extends Controller
 
     public function show(OfertaResiduo $oferta)
     {
-        $oferta->load(['material', 'endereco', 'user', 'ofertaImagens']);
+        $oferta->load(['material', 'endereco', 'user', 'ofertaImagens', 'coleta.coletor']);
         return $this->success(new OfertaResiduoResource($oferta));
     }
 

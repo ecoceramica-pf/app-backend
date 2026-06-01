@@ -45,6 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/coletas/{coleta}', [ColetaController::class, 'show']);
     Route::post('/ofertas/{oferta}/reservar', [ColetaController::class, 'reservar']);
     Route::post('/coletas/{coleta}/cancelar', [ColetaController::class, 'cancelar']);
+    Route::post('/coletas/{coleta}/aprovar', [ColetaController::class, 'aprovar']);
+    Route::post('/coletas/{coleta}/recusar', [ColetaController::class, 'recusar']);
     Route::post('/coletas/{coleta}/confirmar-fabrica', [ColetaController::class, 'confirmarFabrica']);
     Route::post('/coletas/{coleta}/confirmar-coletor', [ColetaController::class, 'confirmarColetor']);
 

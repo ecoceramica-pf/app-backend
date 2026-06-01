@@ -16,7 +16,9 @@ class ColetaResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'status' => $this->status,
             'data_reserva' => $this->data_reserva?->toIso8601String(),
+            'data_agendamento' => $this->data_agendamento?->toIso8601String(),
             'data_conclusao' => $this->data_conclusao?->toIso8601String(),
             'confirmacao_fabrica' => $this->confirmacao_fabrica?->toIso8601String(),
             'confirmacao_coletor' => $this->confirmacao_coletor?->toIso8601String(),
