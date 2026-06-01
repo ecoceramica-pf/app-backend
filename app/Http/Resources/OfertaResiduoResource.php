@@ -26,6 +26,7 @@ class OfertaResiduoResource extends JsonResource
             // 'material' => new MaterialResource($this->whenLoaded('material')), // Assuming MaterialResource might be added later, or just return raw if not created for now
             'material' => $this->whenLoaded('material'),
             'imagens' => OfertaImagemResource::collection($this->whenLoaded('ofertaImagens')),
+            'coleta' => new ColetaResource($this->whenLoaded('coleta')),
         ];
     }
 }

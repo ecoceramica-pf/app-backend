@@ -19,6 +19,11 @@ class EnderecoController extends Controller
     public function store(StoreEnderecoRequest $request)
     {
         $endereco = $request->user()->enderecos()->create($request->validated());
+        
+        if (empty($endereco->localizacao)) {
+            \App\Jobs\GeocodeEnderecoJob::dispatch($endereco);
+        }
+
         return $this->success(new EnderecoResource($endereco), 'Endereço cadastrado com sucesso', 201);
     }
 
@@ -33,7 +38,22 @@ class EnderecoController extends Controller
     {
         Gate::authorize('update', $endereco);
 
-        $endereco->update($request->validated());
+        $validated = $request->validated();
+        
+        $endereco->fill($validated);
+
+        // Se o endereço principal foi alterado e não foi enviada uma nova localização explícita
+        $addressChanged = $endereco->isDirty(['logradouro', 'numero', 'bairro', 'cidade', 'estado', 'cep']);
+        
+        if ($addressChanged && !array_key_exists('localizacao', $validated)) {
+            $endereco->localizacao = null; // Limpa a localização antiga
+        }
+
+        $endereco->save();
+
+        if (empty($endereco->localizacao)) {
+            \App\Jobs\GeocodeEnderecoJob::dispatch($endereco);
+        }
 
         return $this->success(new EnderecoResource($endereco), 'Endereço atualizado com sucesso.');
     }

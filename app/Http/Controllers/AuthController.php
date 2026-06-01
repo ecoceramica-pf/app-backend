@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\RegisterUserRequest;
 use App\Http\Requests\LoginUserRequest;
 use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -22,28 +23,24 @@ class AuthController extends Controller
             'telefone' => $request->telefone,
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        Auth::login($user);
 
         return $this->success([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
             'user' => new UserResource($user)
         ], 'Usuário registrado com sucesso', 201);
     }
 
     public function login(LoginUserRequest $request)
     {
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!Auth::attempt($request->only('email', 'password'))) {
             return $this->error('As credenciais fornecidas estão incorretas.', 401);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $request->session()->regenerate();
+
+        $user = Auth::user();
 
         return $this->success([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
             'user' => new UserResource($user)
         ], 'Login realizado com sucesso');
     }
@@ -55,7 +52,11 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::guard('web')->logout();
+        
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return $this->success(null, 'Logout realizado com sucesso');
     }
 

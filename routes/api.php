@@ -9,6 +9,7 @@ use App\Http\Controllers\OfertaResiduoController;
 use App\Http\Controllers\OfertaImagemController;
 use App\Http\Controllers\ColetaController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DisponibilidadeController;
 
 // Auth Público
 Route::post('/register', [AuthController::class, 'register']);
@@ -44,6 +45,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/coletas/{coleta}', [ColetaController::class, 'show']);
     Route::post('/ofertas/{oferta}/reservar', [ColetaController::class, 'reservar']);
     Route::post('/coletas/{coleta}/cancelar', [ColetaController::class, 'cancelar']);
+    Route::post('/coletas/{coleta}/aprovar', [ColetaController::class, 'aprovar']);
+    Route::post('/coletas/{coleta}/recusar', [ColetaController::class, 'recusar']);
     Route::post('/coletas/{coleta}/confirmar-fabrica', [ColetaController::class, 'confirmarFabrica']);
     Route::post('/coletas/{coleta}/confirmar-coletor', [ColetaController::class, 'confirmarColetor']);
+
+    // Disponibilidade da Fábrica
+    Route::get('/disponibilidade', [DisponibilidadeController::class, 'show']);
+    Route::put('/disponibilidade', [DisponibilidadeController::class, 'upsert']);
+    Route::get('/disponibilidade/faixas-horarios', [DisponibilidadeController::class, 'indexFaixas']);
+    Route::post('/disponibilidade/faixas-horarios', [DisponibilidadeController::class, 'storeFaixa']);
+    Route::delete('/disponibilidade/faixas-horarios/{faixa}', [DisponibilidadeController::class, 'destroyFaixa']);
+    Route::get('/disponibilidade/bloqueios', [DisponibilidadeController::class, 'indexBloqueios']);
+    Route::post('/disponibilidade/bloqueios', [DisponibilidadeController::class, 'storeBloqueio']);
+    Route::delete('/disponibilidade/bloqueios/{bloqueio}', [DisponibilidadeController::class, 'destroyBloqueio']);
+
+    // Slots disponíveis para agendamento (coletor)
+    Route::get('/ofertas/{oferta}/slots-disponiveis', [DisponibilidadeController::class, 'slotsDisponiveis']);
 });
+

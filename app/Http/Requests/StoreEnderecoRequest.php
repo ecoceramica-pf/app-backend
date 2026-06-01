@@ -18,6 +18,9 @@ class StoreEnderecoRequest extends FormRequest
             'numero' => ['required', 'string', 'max:20'],
             'bairro' => ['required', 'string', 'max:80'],
             'cidade' => ['required', 'string', 'max:80'],
+            'estado' => ['nullable', 'string', 'max:2'],
+            'cep' => ['nullable', 'string', 'max:10'],
+            'complemento' => ['nullable', 'string', 'max:100'],
             'localizacao' => ['nullable'],
         ];
     }

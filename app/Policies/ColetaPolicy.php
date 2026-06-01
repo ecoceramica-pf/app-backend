@@ -59,4 +59,22 @@ class ColetaPolicy
 
         return Response::deny('Acesso não autorizado.');
     }
+
+    public function aprovar(User $user, Coleta $coleta): Response
+    {
+        if ($user->id !== $coleta->ofertaResiduo->user_id) {
+            return Response::deny('Acesso não autorizado. Apenas o criador da oferta pode aprovar.');
+        }
+
+        return Response::allow();
+    }
+
+    public function recusar(User $user, Coleta $coleta): Response
+    {
+        if ($user->id !== $coleta->ofertaResiduo->user_id) {
+            return Response::deny('Acesso não autorizado. Apenas o criador da oferta pode recusar.');
+        }
+
+        return Response::allow();
+    }
 }
