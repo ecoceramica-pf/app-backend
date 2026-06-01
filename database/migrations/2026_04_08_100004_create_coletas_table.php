@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('coletas', function (Blueprint $table) {
             $table->id()->comment('Identificador único da coleta');
-            $table->foreignId('oferta_residuo_id')->constrained('ofertas_residuos')->onDelete('cascade')->comment('Oferta de resíduo que está sendo coletada');
-            $table->foreignId('coletor_id')->constrained('users')->onDelete('cascade')->comment('Usuário coletor responsável');
+            $table->foreignId('oferta_residuo_id')->constrained('ofertas_residuos')->onDelete('restrict')->comment('Oferta de resíduo que está sendo coletada');
+            $table->foreignId('coletor_id')->constrained('users')->onDelete('restrict')->comment('Usuário coletor responsável');
             $table->unique(['coletor_id', 'oferta_residuo_id']);
             $table->dateTime('data_reserva')->comment('Data e hora em que a reserva da coleta foi feita');
             $table->dateTime('data_conclusao')->nullable()->comment('Data e hora em que a coleta foi finalizada fisicamente');
