@@ -169,6 +169,9 @@ paths:
                 complemento:
                   type: string
                   example: "Galpão 2"
+                localizacao:
+                  type: string
+                  example: "POINT(-47.4667 -21.85)"
       responses:
         '201':
           description: Endereço cadastrado com sucesso
@@ -216,6 +219,18 @@ paths:
                 numero:
                   type: string
                   example: "456"
+                estado:
+                  type: string
+                  example: "SP"
+                cep:
+                  type: string
+                  example: "13660-000"
+                complemento:
+                  type: string
+                  example: "Galpão 3"
+                localizacao:
+                  type: string
+                  example: "POINT(-47.4667 -21.85)"
       responses:
         '200':
           description: Endereço atualizado com sucesso

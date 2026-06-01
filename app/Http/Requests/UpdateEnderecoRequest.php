@@ -26,9 +26,10 @@ class UpdateEnderecoRequest extends FormRequest
             'numero' => 'sometimes|required|string|max:20',
             'bairro' => 'sometimes|required|string|max:100',
             'cidade' => 'sometimes|required|string|max:100',
-            'estado' => 'sometimes|string|max:2',
-            'cep' => 'sometimes|string|max:10',
+            'estado' => 'sometimes|nullable|string|max:2',
+            'cep' => 'sometimes|nullable|string|max:10',
             'complemento' => 'nullable|string|max:100',
+            'localizacao' => 'nullable',
         ];
     }
 }
