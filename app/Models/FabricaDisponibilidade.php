@@ -48,6 +48,6 @@ class FabricaDisponibilidade extends Model
      */
     public function isDiaInteiro(): bool
     {
-        return is_null($this->duracao_coleta_min);
+        return is_null($this->duracao_coleta_min) || $this->faixasHorarios->isEmpty();
     }
 }
