@@ -14,6 +14,7 @@ class Coleta extends Model
         'oferta_residuo_id',
         'coletor_id',
         'data_reserva',
+        'data_agendamento',
         'data_conclusao',
         'confirmacao_fabrica',
         'confirmacao_coletor'
@@ -21,6 +22,7 @@ class Coleta extends Model
 
     protected $casts = [
         'data_reserva' => 'datetime',
+        'data_agendamento' => 'datetime',
         'data_conclusao' => 'datetime',
         'confirmacao_fabrica' => 'datetime',
         'confirmacao_coletor' => 'datetime',

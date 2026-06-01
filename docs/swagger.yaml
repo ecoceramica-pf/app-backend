@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: Ecocerâmica API
   description: API RESTful do sistema Ecocerâmica para gerenciamento de descartes e coletas de resíduos cerâmicos em Porto Ferreira.
-  version: 2.1.0
+  version: 3.0.0
 servers:
   - url: http://localhost:8000/api
     description: Ambiente de Desenvolvimento
@@ -311,6 +311,10 @@ paths:
       tags:
         - Ofertas de Resíduos
       summary: Detalhar oferta
+      description: |
+        Retorna os detalhes da oferta, incluindo imagens, material e a configuração
+        de disponibilidade da fábrica (quando existir) para que o frontend saiba se
+        deve exibir o seletor de agendamento.
       parameters:
         - name: id
           in: path
@@ -319,7 +323,55 @@ paths:
             type: integer
       responses:
         '200':
-          description: Detalhes da oferta com imagens e material
+          description: Detalhes da oferta com imagens, material e disponibilidade da fábrica
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      uuid:
+                        type: string
+                      material:
+                        type: object
+                      endereco:
+                        type: object
+                      fabrica_disponibilidade:
+                        type: object
+                        nullable: true
+                        description: Configuração de disponibilidade da fábrica (null se não configurada)
+                        properties:
+                          dias_semana:
+                            type: array
+                            items:
+                              type: integer
+                            example: [1, 2, 3, 4, 5]
+                          duracao_coleta_min:
+                            type: integer
+                            nullable: true
+                            description: "Duração em minutos (30, 60, 120). null = dia inteiro"
+                            example: 60
+                          antecedencia_minima_dias:
+                            type: integer
+                            example: 1
+                          max_coletas_dia:
+                            type: integer
+                            example: 3
+                          faixas_horarios:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                hora_inicio:
+                                  type: string
+                                  example: "08:00"
+                                hora_fim:
+                                  type: string
+                                  example: "12:00"
     put:
       tags:
         - Ofertas de Resíduos
@@ -411,23 +463,414 @@ paths:
         '200':
           description: Lista de ofertas do usuário autenticado
 
-  # ========== COLETAS ==========
-  /ofertas/{id}/reservar:
+  # ========== DISPONIBILIDADE DA FÁBRICA ==========
+  /disponibilidade:
+    get:
+      tags:
+        - Disponibilidade da Fábrica
+      summary: Obter configuração de disponibilidade
+      description: |
+        Retorna a configuração de disponibilidade da fábrica logada,
+        incluindo faixas de horário e bloqueios.
+        Requer perfil `fabrica`.
+      responses:
+        '200':
+          description: Configuração de disponibilidade com faixas e bloqueios
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      user_id:
+                        type: integer
+                      dias_semana:
+                        type: array
+                        items:
+                          type: integer
+                        example: [1, 2, 3, 4, 5]
+                        description: "Dias da semana (0=dom, 1=seg, ..., 6=sab)"
+                      duracao_coleta_min:
+                        type: integer
+                        nullable: true
+                        example: 60
+                        description: "30, 60, 120 minutos. null = dia inteiro"
+                      antecedencia_minima_dias:
+                        type: integer
+                        example: 1
+                        description: "0 = mesmo dia, 1 = 1 dia, etc."
+                      max_coletas_dia:
+                        type: integer
+                        example: 3
+                      faixas_horarios:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            hora_inicio:
+                              type: string
+                              example: "08:00"
+                            hora_fim:
+                              type: string
+                              example: "12:00"
+                      bloqueios:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            data_bloqueio:
+                              type: string
+                              format: date
+                              example: "2026-12-25"
+                            motivo:
+                              type: string
+                              example: "Feriado de Natal"
+        '404':
+          description: Configuração de disponibilidade não encontrada
+        '401':
+          description: Não autenticado
+    put:
+      tags:
+        - Disponibilidade da Fábrica
+      summary: Criar ou atualizar configuração de disponibilidade
+      description: |
+        Cria ou atualiza (upsert) a configuração geral de disponibilidade
+        da fábrica logada. Requer perfil `fabrica`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dias_semana, antecedencia_minima_dias, max_coletas_dia]
+              properties:
+                dias_semana:
+                  type: array
+                  items:
+                    type: integer
+                  example: [1, 2, 3, 4, 5]
+                  description: "Dias da semana disponíveis (0=dom, 1=seg, ..., 6=sab)"
+                duracao_coleta_min:
+                  type: integer
+                  nullable: true
+                  enum: [30, 60, 120, null]
+                  example: 60
+                  description: "Duração em minutos. null = dia inteiro"
+                antecedencia_minima_dias:
+                  type: integer
+                  example: 1
+                  description: "0 = mesmo dia"
+                max_coletas_dia:
+                  type: integer
+                  example: 3
+                  description: "Máximo de coletas por dia (limite global da fábrica)"
+      responses:
+        '200':
+          description: Disponibilidade salva com sucesso
+        '422':
+          description: Erro de validação
+        '401':
+          description: Não autenticado
+
+  /disponibilidade/faixas-horarios:
+    get:
+      tags:
+        - Disponibilidade da Fábrica
+      summary: Listar faixas de horário
+      description: |
+        Lista as faixas de horário configuradas pela fábrica logada.
+        Requer que a configuração de disponibilidade exista.
+      responses:
+        '200':
+          description: Lista de faixas de horário
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        hora_inicio:
+                          type: string
+                          example: "08:00"
+                        hora_fim:
+                          type: string
+                          example: "12:00"
+        '404':
+          description: Configure a disponibilidade antes
+        '401':
+          description: Não autenticado
     post:
       tags:
-        - Coletas
-      summary: Reservar coleta de uma oferta
+        - Disponibilidade da Fábrica
+      summary: Adicionar faixa de horário
+      description: |
+        Adiciona uma nova faixa de horário à configuração da fábrica logada.
+        Permite múltiplas faixas (ex: manhã e tarde).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [hora_inicio, hora_fim]
+              properties:
+                hora_inicio:
+                  type: string
+                  example: "08:00"
+                  description: "Formato HH:mm"
+                hora_fim:
+                  type: string
+                  example: "12:00"
+                  description: "Formato HH:mm. Deve ser posterior a hora_inicio"
+      responses:
+        '201':
+          description: Faixa de horário adicionada
+        '404':
+          description: Configure a disponibilidade antes
+        '422':
+          description: Erro de validação (hora_fim deve ser após hora_inicio)
+        '401':
+          description: Não autenticado
+
+  /disponibilidade/faixas-horarios/{id}:
+    delete:
+      tags:
+        - Disponibilidade da Fábrica
+      summary: Remover faixa de horário
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: integer
+          description: ID da faixa de horário
+      responses:
+        '200':
+          description: Faixa de horário removida
+        '403':
+          description: Esta faixa não pertence à sua configuração
+        '404':
+          description: Faixa não encontrada
+        '401':
+          description: Não autenticado
+
+  /disponibilidade/bloqueios:
+    get:
+      tags:
+        - Disponibilidade da Fábrica
+      summary: Listar bloqueios de data
+      description: |
+        Lista os bloqueios de datas específicas configurados pela fábrica (feriados, férias, etc).
+      responses:
+        '200':
+          description: Lista de bloqueios
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        data_bloqueio:
+                          type: string
+                          format: date
+                          example: "2026-12-25"
+                        motivo:
+                          type: string
+                          nullable: true
+                          example: "Feriado de Natal"
+        '404':
+          description: Configure a disponibilidade antes
+        '401':
+          description: Não autenticado
+    post:
+      tags:
+        - Disponibilidade da Fábrica
+      summary: Adicionar bloqueio de data
+      description: |
+        Bloqueia uma data específica impedindo agendamentos de coleta.
+        Útil para feriados, férias, manutenção, etc.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data_bloqueio]
+              properties:
+                data_bloqueio:
+                  type: string
+                  format: date
+                  example: "2026-12-25"
+                  description: "Data a bloquear (deve ser hoje ou futura)"
+                motivo:
+                  type: string
+                  nullable: true
+                  example: "Feriado de Natal"
+                  description: "Motivo opcional do bloqueio"
       responses:
         '201':
-          description: Coleta reservada com sucesso
+          description: Bloqueio adicionado
+        '404':
+          description: Configure a disponibilidade antes
+        '422':
+          description: Erro de validação ou data duplicada
+        '401':
+          description: Não autenticado
+
+  /disponibilidade/bloqueios/{id}:
+    delete:
+      tags:
+        - Disponibilidade da Fábrica
+      summary: Remover bloqueio de data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID do bloqueio
+      responses:
+        '200':
+          description: Bloqueio removido
+        '403':
+          description: Este bloqueio não pertence à sua configuração
+        '404':
+          description: Bloqueio não encontrado
+        '401':
+          description: Não autenticado
+
+  # ========== COLETAS ==========
+  /ofertas/{id}/reservar:
+    post:
+      tags:
+        - Coletas
+      summary: Agendar coleta de uma oferta
+      description: |
+        Agenda uma coleta para a oferta especificada.
+        O coletor deve informar a data e horário desejado.
+        O sistema valida automaticamente:
+        - Se a fábrica opera no dia da semana escolhido
+        - Se a data não está bloqueada (feriado, férias)
+        - Se a antecedência mínima é respeitada
+        - Se o horário está dentro das faixas disponíveis
+        - Se o limite diário de coletas da fábrica não foi atingido
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data_agendamento]
+              properties:
+                data_agendamento:
+                  type: string
+                  format: date-time
+                  example: "2026-06-15T09:00:00"
+                  description: "Data e horário desejado para a coleta"
+      responses:
+        '201':
+          description: Coleta agendada com sucesso
         '400':
           description: Oferta não disponível para coleta
+        '422':
+          description: |
+            Erro de validação do agendamento. Possíveis motivos:
+            - Fábrica não opera neste dia da semana
+            - Data bloqueada pela fábrica
+            - Antecedência mínima não respeitada
+            - Horário fora das faixas disponíveis
+            - Limite de coletas da fábrica atingido para o dia
+            - Fábrica sem configuração de disponibilidade
+
+  /ofertas/{id}/slots-disponiveis:
+    get:
+      tags:
+        - Coletas
+      summary: Consultar slots disponíveis para agendamento
+      description: |
+        Retorna os horários disponíveis para agendamento de coleta em uma data específica.
+        Considera a configuração de disponibilidade da fábrica, bloqueios, faixas horárias
+        e coletas já agendadas no dia. Útil para o frontend montar o seletor de horários.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID da oferta
+        - name: data
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: "Data desejada (YYYY-MM-DD)"
+          example: "2026-06-15"
+      responses:
+        '200':
+          description: Slots disponíveis para a data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      slots:
+                        type: array
+                        description: "Lista de faixas horárias disponíveis. Vazio se não há slots."
+                        items:
+                          type: object
+                          properties:
+                            hora_inicio:
+                              type: string
+                              example: "08:00"
+                            hora_fim:
+                              type: string
+                              example: "12:00"
+                            tipo:
+                              type: string
+                              description: "Presente apenas quando é dia inteiro"
+                              example: "dia_inteiro"
+                      duracao_coleta_min:
+                        type: integer
+                        nullable: true
+                        description: "Duração de cada coleta em minutos"
+                      coletas_restantes:
+                        type: integer
+                        description: "Quantas coletas ainda podem ser agendadas no dia"
+                      lotado:
+                        type: boolean
+                        description: "Presente e true quando o limite diário foi atingido"
+        '422':
+          description: Fábrica sem configuração de disponibilidade
 
   /minhas-coletas:
     get:

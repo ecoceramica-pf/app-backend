@@ -48,4 +48,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Coleta::class, 'coletor_id');
     }
+
+    public function disponibilidade() // configuração de disponibilidade da fábrica
+    {
+        return $this->hasOne(FabricaDisponibilidade::class);
+    }
 }
