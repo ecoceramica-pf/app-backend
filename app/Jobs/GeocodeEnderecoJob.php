@@ -45,15 +45,29 @@ class GeocodeEnderecoJob implements ShouldQueue
             return;
         }
 
-        $addressString = "{$endereco->logradouro}, {$endereco->numero}";
-        if ($endereco->bairro) $addressString .= " - {$endereco->bairro}";
-        $addressString .= ", {$endereco->cidade}";
-        if ($endereco->estado) $addressString .= " - {$endereco->estado}";
-        if ($endereco->cep) $addressString .= ", {$endereco->cep}";
+        $parts = [];
+        $parts[] = trim("{$endereco->logradouro}, {$endereco->numero}");
+        if ($endereco->bairro) $parts[] = trim($endereco->bairro);
+        $parts[] = trim($endereco->cidade);
+        if ($endereco->estado) $parts[] = trim($endereco->estado);
+        if ($endereco->cep) {
+            // Remove o ponto do CEP (ex: 13.661-218 -> 13661-218)
+            // O Google Maps costuma se confundir com CEPs formatados com ponto no Brasil
+            $parts[] = preg_replace('/[^0-9-]/', '', $endereco->cep);
+        }
+        $parts[] = "Brasil";
+
+        $addressString = implode(", ", $parts);
+
+        // Log::debug("Iniciando geocodificação para Endereço {$endereco->id}", [
+        //     'address_string' => $addressString,
+        //     'endereco_dados_originais' => $endereco->only(['logradouro', 'numero', 'bairro', 'cidade', 'estado', 'cep'])
+        // ]);
 
         try {
             $response = Http::get('https://maps.googleapis.com/maps/api/geocode/json', [
                 'address' => $addressString,
+                'components' => 'country:BR',
                 'key' => $apiKey
             ]);
 
@@ -77,8 +91,18 @@ class GeocodeEnderecoJob implements ShouldQueue
             }
 
             $location = $data['results'][0]['geometry']['location'];
+            $locationType = $data['results'][0]['geometry']['location_type'] ?? 'UNKNOWN';
+            $formattedAddress = $data['results'][0]['formatted_address'] ?? 'UNKNOWN';
+
             $lat = $location['lat'];
             $lng = $location['lng'];
+
+            // Log::debug("Resposta do Google Maps para Endereço {$endereco->id}", [
+            //     'formatted_address' => $formattedAddress,
+            //     'location_type' => $locationType,
+            //     'lat' => $lat,
+            //     'lng' => $lng
+            // ]);
 
             // Em MySQL e Laravel, a longitude vem primeiro no POINT
             $endereco->update([
