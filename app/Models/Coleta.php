@@ -13,11 +13,13 @@ class Coleta extends Model
     protected $fillable = [
         'oferta_residuo_id',
         'coletor_id',
+        'status',
         'data_reserva',
         'data_agendamento',
         'data_conclusao',
         'confirmacao_fabrica',
-        'confirmacao_coletor'
+        'confirmacao_coletor',
+        'observacoes'
     ];
 
     protected $casts = [

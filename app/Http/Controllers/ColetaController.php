@@ -13,8 +13,8 @@ class ColetaController extends Controller
 {
     public function minhasColetas(Request $request)
     {
-        $coletas = $request->user()->coletas()->with(['ofertaResiduo.material', 'ofertaResiduo.endereco', 'ofertaResiduo.user'])->get();
-        return $this->success(ColetaResource::collection($coletas));
+        $coletas = $request->user()->coletas()->with(['ofertaResiduo.material', 'ofertaResiduo.endereco', 'ofertaResiduo.user'])->paginate(9);
+        return ColetaResource::collection($coletas);
     }
 
     public function reservar(Request $request, OfertaResiduo $oferta)
@@ -34,6 +34,7 @@ class ColetaController extends Controller
         // Validar campo obrigatório
         $validated = $request->validate([
             'data_agendamento' => 'required|date|after_or_equal:today',
+            'observacoes' => 'nullable|string|max:1000',
         ]);
 
         $dataAgendamento = \Carbon\Carbon::parse($validated['data_agendamento']);
@@ -94,6 +95,7 @@ class ColetaController extends Controller
             'coletor_id' => $request->user()->id,
             'data_reserva' => now(),
             'data_agendamento' => $dataAgendamento,
+            'observacoes' => $validated['observacoes'] ?? null,
         ]);
 
         $oferta->update(['status' => OfertaStatus::EmProcesso]);

@@ -40,4 +40,13 @@ class OfertaResiduoPolicy
 
         return Response::allow();
     }
+
+    public function alterarStatus(User $user, OfertaResiduo $ofertaResiduo): Response
+    {
+        if ($user->id !== $ofertaResiduo->user_id) {
+            return Response::deny('Acesso não autorizado.');
+        }
+
+        return Response::allow();
+    }
 }

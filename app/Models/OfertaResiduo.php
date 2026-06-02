@@ -50,8 +50,15 @@ class OfertaResiduo extends Model
         return $this->hasMany(OfertaImagem::class);
     }
 
+    public function coletas()
+    {
+        return $this->hasMany(Coleta::class);
+    }
+
     public function coleta()
     {
-        return $this->hasOne(Coleta::class);
+        return $this->hasOne(Coleta::class)
+            ->orderByRaw("CASE WHEN status IN ('pendente', 'agendado') THEN 0 ELSE 1 END")
+            ->latest();
     }
 }

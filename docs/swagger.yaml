@@ -422,6 +422,44 @@ paths:
         '403':
           description: Acesso não autorizado ou oferta em processo/concluída
 
+  /ofertas/{id}/status:
+    patch:
+      tags:
+        - Ofertas de Resíduos
+      summary: Alterar status da oferta (Fábrica)
+      description: |
+        Permite à fábrica alterar manualmente o status de uma oferta para Concluído, Cancelado ou Disponível.
+        A fábrica não pode marcar como Cancelado ou Disponível se a oferta possuir coletas pendentes ou agendadas.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [Disponível, Concluído, Cancelado]
+                  example: "Concluído"
+      responses:
+        '200':
+          description: Status alterado com sucesso
+        '400':
+          description: O novo status não é permitido ou é inválido
+        '403':
+          description: Apenas o dono da oferta pode alterar seu status
+        '422':
+          description: A oferta possui coletas em andamento, não pode ser cancelada ou voltar a ficar disponível
+        '404':
+          description: Oferta não encontrada
+
   /ofertas/{uuid}/imagens:
     post:
       tags:
@@ -914,6 +952,44 @@ paths:
           description: Coleta cancelada e oferta retorna a Disponível
         '403':
           description: Acesso não autorizado ou coleta já concluída
+
+  /coletas/{id}/aprovar:
+    post:
+      tags:
+        - Coletas
+      summary: Aprovar proposta de coleta (Fábrica)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Proposta de coleta aprovada
+        '400':
+          description: Apenas coletas pendentes podem ser aprovadas
+        '403':
+          description: Acesso não autorizado
+
+  /coletas/{id}/recusar:
+    post:
+      tags:
+        - Coletas
+      summary: Recusar proposta de coleta (Fábrica)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Proposta de coleta recusada e oferta retorna a Disponível
+        '400':
+          description: Apenas coletas pendentes podem ser recusadas
+        '403':
+          description: Acesso não autorizado
 
   /coletas/{id}/confirmar-fabrica:
     post:
