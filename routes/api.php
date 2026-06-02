@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/ofertas/{oferta}', [OfertaResiduoController::class, 'show']);
     Route::put('/ofertas/{oferta}', [OfertaResiduoController::class, 'update']);
     Route::delete('/ofertas/{oferta}', [OfertaResiduoController::class, 'destroy']);
+    Route::patch('/ofertas/{oferta}/status', [OfertaResiduoController::class, 'alterarStatus']);
     Route::get('/minhas-ofertas', [OfertaResiduoController::class, 'minhasOfertas']);
 
     // Coletas

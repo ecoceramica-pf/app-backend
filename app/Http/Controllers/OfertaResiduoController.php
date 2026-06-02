@@ -26,15 +26,21 @@ class OfertaResiduoController extends Controller
             $query->where('status', OfertaStatus::Disponivel);
         }
 
-        $paginator = $query->paginate(15);
+        $paginator = $query->paginate(9);
         
         return OfertaResiduoResource::collection($paginator);
     }
 
     public function minhasOfertas(Request $request)
     {
-        $ofertas = $request->user()->ofertasResiduos()->with(['material', 'endereco', 'coleta.coletor', 'user'])->get();
-        return $this->success(OfertaResiduoResource::collection($ofertas));
+        $query = $request->user()->ofertasResiduos()->with(['material', 'endereco', 'coleta.coletor', 'user']);
+        
+        if ($request->has('status') && $request->status !== 'todos') {
+            $query->where('status', $request->status);
+        }
+        
+        $paginator = $query->paginate(9);
+        return OfertaResiduoResource::collection($paginator);
     }
 
     public function store(StoreOfertaResiduoRequest $request)
@@ -71,5 +77,41 @@ class OfertaResiduoController extends Controller
         $oferta->delete();
 
         return $this->success(null, 'Oferta excluída com sucesso.');
+    }
+
+    public function alterarStatus(Request $request, OfertaResiduo $oferta)
+    {
+        Gate::authorize('alterarStatus', $oferta);
+
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:disponivel,concluido,cancelado']
+        ]);
+
+        $novoStatus = OfertaStatus::from($validated['status']);
+
+        // Se a oferta já está com o mesmo status, não faz nada
+        if ($oferta->status === $novoStatus) {
+            return $this->success(new OfertaResiduoResource($oferta), 'Status atualizado com sucesso.');
+        }
+
+        // Busca coletas ativas
+        $coletasAtivas = $oferta->coletas()->whereIn('status', ['pendente', 'agendado'])->get();
+
+        if ($novoStatus === OfertaStatus::Disponivel) {
+            if ($coletasAtivas->isNotEmpty()) {
+                return $this->error('Não é possível alterar para Disponível pois existem coletas em andamento.', 422);
+            }
+        } elseif ($novoStatus === OfertaStatus::Cancelado) {
+            if ($coletasAtivas->isNotEmpty()) {
+                return $this->error('Não é possível cancelar a oferta pois existem coletas em andamento. Recuse ou cancele as coletas primeiro.', 422);
+            }
+        }
+
+        // Atualiza o status
+        $oferta->update([
+            'status' => $novoStatus
+        ]);
+
+        return $this->success(new OfertaResiduoResource($oferta), 'Status da oferta atualizado com sucesso.');
     }
 }

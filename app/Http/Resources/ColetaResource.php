@@ -22,6 +22,7 @@ class ColetaResource extends JsonResource
             'data_conclusao' => $this->data_conclusao?->toIso8601String(),
             'confirmacao_fabrica' => $this->confirmacao_fabrica?->toIso8601String(),
             'confirmacao_coletor' => $this->confirmacao_coletor?->toIso8601String(),
+            'observacoes' => $this->observacoes,
             'oferta_residuo' => new OfertaResiduoResource($this->whenLoaded('ofertaResiduo')),
             'coletor' => new UserResource($this->whenLoaded('coletor')),
         ];
