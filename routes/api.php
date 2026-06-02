@@ -14,6 +14,8 @@ use App\Http\Controllers\DisponibilidadeController;
 // Auth Público
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [\App\Http\Controllers\PasswordResetController::class, 'sendResetLinkEmail']);
+Route::post('/reset-password', [\App\Http\Controllers\PasswordResetController::class, 'reset']);
 
 // Materiais e Info Publica / Dashboard simples não exige auth segundo requisito geral ou pode ser publico dependendo da visão do frontend
 Route::get('/materiais', [MaterialController::class, 'index']);

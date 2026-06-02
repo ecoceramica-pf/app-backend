@@ -28,5 +28,14 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
+  mailpit:
+    image: 'axllent/mailpit:latest'
+    container_name: mailpit_app
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - default
+
 volumes:
   db_data:
