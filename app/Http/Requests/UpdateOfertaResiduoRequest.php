@@ -25,7 +25,7 @@ class UpdateOfertaResiduoRequest extends FormRequest
             'endereco_id' => 'sometimes|exists:enderecos,id',
             'material_id' => 'sometimes|exists:materiais,id',
             'quantidade_kg' => 'nullable|numeric|min:0',
-            'quantidade_cacamba' => 'nullable|numeric|min:0',
+            'quantidade_cacamba' => 'nullable|integer|min:0',
             'observacoes' => 'nullable|string',
         ];
     }

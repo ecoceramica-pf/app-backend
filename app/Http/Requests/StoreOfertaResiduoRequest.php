@@ -16,8 +16,8 @@ class StoreOfertaResiduoRequest extends FormRequest
         return [
             'endereco_id' => ['required', 'exists:enderecos,id'],
             'material_id' => ['required', 'exists:materiais,id'],
-            'quantidade_kg' => ['nullable', 'numeric', 'min:0'],
-            'quantidade_cacamba' => ['nullable', 'integer', 'min:0'],
+            'quantidade_kg' => ['required_without:quantidade_cacamba', 'nullable', 'numeric', 'min:0'],
+            'quantidade_cacamba' => ['required_without:quantidade_kg', 'nullable', 'integer', 'min:0'],
             'observacoes' => ['nullable', 'string'],
         ];
     }
