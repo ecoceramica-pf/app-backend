@@ -65,10 +65,6 @@ class AuthController extends Controller
         $user = $request->user();
         $validated = $request->validated();
 
-        if (isset($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
-        }
-
         $user->update($validated);
 
         return $this->success(new UserResource($user), 'Perfil atualizado com sucesso.');

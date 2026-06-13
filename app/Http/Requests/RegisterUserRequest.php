@@ -17,7 +17,7 @@ class RegisterUserRequest extends FormRequest
     {
         return [
             'nome' => ['required', 'string', 'max:120'],
-            'email' => ['required', 'email', 'unique:users,email'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
             'tipo_perfil' => ['required', new Enum(TipoPerfil::class)],
             'documento' => ['required', 'string', 'max:20'],

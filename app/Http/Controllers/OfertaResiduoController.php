@@ -89,29 +89,33 @@ class OfertaResiduoController extends Controller
 
         $novoStatus = OfertaStatus::from($validated['status']);
 
-        // Se a oferta já está com o mesmo status, não faz nada
-        if ($oferta->status === $novoStatus) {
-            return $this->success(new OfertaResiduoResource($oferta), 'Status atualizado com sucesso.');
-        }
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($oferta, $novoStatus) {
+            $oferta = OfertaResiduo::where('id', $oferta->id)->lockForUpdate()->first();
 
-        // Busca coletas ativas
-        $coletasAtivas = $oferta->coletas()->whereIn('status', ['pendente', 'agendado'])->get();
-
-        if ($novoStatus === OfertaStatus::Disponivel) {
-            if ($coletasAtivas->isNotEmpty()) {
-                return $this->error('Não é possível alterar para Disponível pois existem coletas em andamento.', 422);
+            // Se a oferta já está com o mesmo status, não faz nada
+            if ($oferta->status === $novoStatus) {
+                return $this->success(new OfertaResiduoResource($oferta), 'Status atualizado com sucesso.');
             }
-        } elseif ($novoStatus === OfertaStatus::Cancelado) {
-            if ($coletasAtivas->isNotEmpty()) {
-                return $this->error('Não é possível cancelar a oferta pois existem coletas em andamento. Recuse ou cancele as coletas primeiro.', 422);
+
+            // Busca coletas ativas
+            $coletasAtivas = $oferta->coletas()->whereIn('status', ['pendente', 'agendado'])->get();
+
+            if ($novoStatus === OfertaStatus::Disponivel) {
+                if ($coletasAtivas->isNotEmpty()) {
+                    return $this->error('Não é possível alterar para Disponível pois existem coletas em andamento.', 422);
+                }
+            } elseif ($novoStatus === OfertaStatus::Cancelado) {
+                if ($coletasAtivas->isNotEmpty()) {
+                    return $this->error('Não é possível cancelar a oferta pois existem coletas em andamento. Recuse ou cancele as coletas primeiro.', 422);
+                }
             }
-        }
 
-        // Atualiza o status
-        $oferta->update([
-            'status' => $novoStatus
-        ]);
+            // Atualiza o status
+            $oferta->update([
+                'status' => $novoStatus
+            ]);
 
-        return $this->success(new OfertaResiduoResource($oferta), 'Status da oferta atualizado com sucesso.');
+            return $this->success(new OfertaResiduoResource($oferta), 'Status da oferta atualizado com sucesso.');
+        });
     }
 }

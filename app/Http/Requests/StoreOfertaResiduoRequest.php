@@ -14,7 +14,12 @@ class StoreOfertaResiduoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'endereco_id' => ['required', 'exists:enderecos,id'],
+            'endereco_id' => [
+                'required', 
+                \Illuminate\Validation\Rule::exists('enderecos', 'id')->where(function ($query) {
+                    $query->where('user_id', auth()->id());
+                })
+            ],
             'material_id' => ['required', 'exists:materiais,id'],
             'quantidade_kg' => ['required_without:quantidade_cacamba', 'nullable', 'numeric', 'min:0'],
             'quantidade_cacamba' => ['required_without:quantidade_kg', 'nullable', 'integer', 'min:0'],
