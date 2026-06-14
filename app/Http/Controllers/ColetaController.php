@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 use App\Enums\OfertaStatus;
 use App\Http\Resources\ColetaResource;
+use App\Notifications\ColetaStatusNotification;
 
 class ColetaController extends Controller
 {
@@ -123,6 +124,13 @@ class ColetaController extends Controller
 
             $oferta->update(['status' => OfertaStatus::EmProcesso]);
 
+            // Enviar notificação para a fábrica
+            $fabrica->notify(new ColetaStatusNotification(
+                "O coletor {$request->user()->nome} deseja realizar a coleta para a oferta de {$oferta->material->nome}. Aprove ou recuse.",
+                $coleta->id,
+                'pendente'
+            ));
+
             return $this->success(new ColetaResource($coleta), 'Coleta agendada com sucesso', 201);
         });
     }
@@ -198,6 +206,21 @@ class ColetaController extends Controller
         
         $coleta->update(['status' => 'cancelado']);
 
+        $canceladoPor = $request->user();
+        if ($canceladoPor->id === $coleta->coletor_id) {
+            $coleta->ofertaResiduo->user->notify(new ColetaStatusNotification(
+                "O coletor cancelou a coleta de {$coleta->ofertaResiduo->material->nome}.",
+                $coleta->id,
+                'cancelado'
+            ));
+        } else {
+            $coleta->coletor->notify(new ColetaStatusNotification(
+                "A fábrica cancelou a coleta de {$coleta->ofertaResiduo->material->nome}.",
+                $coleta->id,
+                'cancelado'
+            ));
+        }
+
         return $this->success(new ColetaResource($coleta), 'Coleta cancelada com sucesso.');
     }
 
@@ -210,6 +233,13 @@ class ColetaController extends Controller
         }
 
         $coleta->update(['status' => 'agendado']);
+
+        // Notificar coletor
+        $coleta->coletor->notify(new ColetaStatusNotification(
+            "A fábrica aprovou a sua coleta de {$coleta->ofertaResiduo->material->nome}!",
+            $coleta->id,
+            'agendado'
+        ));
 
         return $this->success(new ColetaResource($coleta), 'Proposta de coleta aprovada.');
     }
@@ -226,6 +256,13 @@ class ColetaController extends Controller
         
         // Voltar a oferta para disponível
         $coleta->ofertaResiduo()->update(['status' => OfertaStatus::Disponivel]);
+
+        // Notificar coletor
+        $coleta->coletor->notify(new ColetaStatusNotification(
+            "A fábrica recusou a sua proposta de coleta de {$coleta->ofertaResiduo->material->nome}.",
+            $coleta->id,
+            'recusado'
+        ));
 
         return $this->success(new ColetaResource($coleta), 'Proposta de coleta recusada.');
     }

@@ -10,6 +10,7 @@ use App\Http\Controllers\OfertaImagemController;
 use App\Http\Controllers\ColetaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DisponibilidadeController;
+use App\Http\Controllers\NotificationController;
 
 // Auth Público com Throttle
 Route::middleware('throttle:6,1')->group(function () {
@@ -27,6 +28,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/me', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Notificações
+    Route::get('/notificacoes', [NotificationController::class, 'index']);
+    Route::get('/notificacoes/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::patch('/notificacoes/{id}/lida', [NotificationController::class, 'markAsRead']);
+    Route::post('/notificacoes/ler-todas', [NotificationController::class, 'markAllAsRead']);
 
     // Endereços
     Route::get('/enderecos', [EnderecoController::class, 'index']);
