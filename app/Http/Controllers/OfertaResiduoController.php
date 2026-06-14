@@ -108,6 +108,10 @@ class OfertaResiduoController extends Controller
                 if ($coletasAtivas->isNotEmpty()) {
                     return $this->error('Não é possível cancelar a oferta pois existem coletas em andamento. Recuse ou cancele as coletas primeiro.', 422);
                 }
+            } elseif ($novoStatus === OfertaStatus::Concluido) {
+                if ($coletasAtivas->isNotEmpty()) {
+                    return $this->error('Não é possível concluir a oferta pois existem coletas em andamento. A oferta será concluída automaticamente ao confirmar a coleta.', 422);
+                }
             }
 
             // Atualiza o status

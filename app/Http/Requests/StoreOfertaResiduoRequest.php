@@ -21,8 +21,8 @@ class StoreOfertaResiduoRequest extends FormRequest
                 })
             ],
             'material_id' => ['required', 'exists:materiais,id'],
-            'quantidade_kg' => ['required_without:quantidade_cacamba', 'nullable', 'numeric', 'min:0'],
-            'quantidade_cacamba' => ['required_without:quantidade_kg', 'nullable', 'integer', 'min:0'],
+            'quantidade_kg' => ['required_without:quantidade_cacamba', 'nullable', 'numeric', 'gt:0'],
+            'quantidade_cacamba' => ['required_without:quantidade_kg', 'nullable', 'integer', 'min:1'],
             'observacoes' => ['nullable', 'string'],
         ];
     }

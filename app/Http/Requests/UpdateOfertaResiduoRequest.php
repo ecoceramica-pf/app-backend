@@ -29,8 +29,8 @@ class UpdateOfertaResiduoRequest extends FormRequest
                 })
             ],
             'material_id' => 'sometimes|exists:materiais,id',
-            'quantidade_kg' => 'nullable|numeric|min:0',
-            'quantidade_cacamba' => 'nullable|integer|min:0',
+            'quantidade_kg' => 'nullable|numeric|gt:0',
+            'quantidade_cacamba' => 'nullable|integer|min:1',
             'observacoes' => 'nullable|string',
         ];
     }

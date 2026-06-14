@@ -123,17 +123,21 @@ class ColetaController extends Controller
             return $this->error('A coleta precisa estar aprovada/agendada para ser confirmada.', 400);
         }
 
-        $coleta->update(['confirmacao_fabrica' => now()]);
+        return DB::transaction(function () use ($coleta) {
+            $coletaLock = Coleta::where('id', $coleta->id)->lockForUpdate()->first();
 
-        if ($coleta->confirmacao_coletor) {
-            $coleta->update([
-                'data_conclusao' => now(),
-                'status' => 'concluido'
-            ]);
-            $coleta->ofertaResiduo()->update(['status' => OfertaStatus::Concluido]);
-        }
+            $coletaLock->update(['confirmacao_fabrica' => now()]);
 
-        return $this->success(new ColetaResource($coleta), 'Confirmação da fábrica registrada.');
+            if ($coletaLock->confirmacao_coletor) {
+                $coletaLock->update([
+                    'data_conclusao' => now(),
+                    'status' => 'concluido'
+                ]);
+                $coletaLock->ofertaResiduo()->update(['status' => OfertaStatus::Concluido]);
+            }
+
+            return $this->success(new ColetaResource($coletaLock), 'Confirmação da fábrica registrada.');
+        });
     }
 
     public function confirmarColetor(Request $request, Coleta $coleta)
@@ -144,17 +148,21 @@ class ColetaController extends Controller
             return $this->error('A coleta precisa estar aprovada/agendada para ser confirmada.', 400);
         }
 
-        $coleta->update(['confirmacao_coletor' => now()]);
+        return DB::transaction(function () use ($coleta) {
+            $coletaLock = Coleta::where('id', $coleta->id)->lockForUpdate()->first();
 
-        if ($coleta->confirmacao_fabrica) {
-            $coleta->update([
-                'data_conclusao' => now(),
-                'status' => 'concluido'
-            ]);
-            $coleta->ofertaResiduo()->update(['status' => OfertaStatus::Concluido]);
-        }
+            $coletaLock->update(['confirmacao_coletor' => now()]);
 
-        return $this->success(new ColetaResource($coleta), 'Confirmação do coletor registrada.');
+            if ($coletaLock->confirmacao_fabrica) {
+                $coletaLock->update([
+                    'data_conclusao' => now(),
+                    'status' => 'concluido'
+                ]);
+                $coletaLock->ofertaResiduo()->update(['status' => OfertaStatus::Concluido]);
+            }
+
+            return $this->success(new ColetaResource($coletaLock), 'Confirmação do coletor registrada.');
+        });
     }
 
     public function show(Request $request, Coleta $coleta)

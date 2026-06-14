@@ -24,6 +24,7 @@ class UpdateProfileRequest extends FormRequest
         return [
             'nome' => 'sometimes|required|string|max:120',
             'telefone' => 'sometimes|required|string|max:20',
+            'current_password' => 'required_with:password|current_password',
             'password' => 'sometimes|required|string|min:8',
         ];
     }
