@@ -55,6 +55,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Coletas
     Route::get('/minhas-coletas', [ColetaController::class, 'minhasColetas']);
+    Route::get('/coletas-fabrica', [ColetaController::class, 'coletasFabrica']);
     Route::get('/coletas/{coleta}', [ColetaController::class, 'show']);
     Route::post('/ofertas/{oferta}/reservar', [ColetaController::class, 'reservar']);
     Route::post('/coletas/{coleta}/cancelar', [ColetaController::class, 'cancelar']);

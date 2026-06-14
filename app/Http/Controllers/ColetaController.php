@@ -15,9 +15,30 @@ class ColetaController extends Controller
 {
     public function minhasColetas(Request $request)
     {
-        $query = $request->user()->coletas()->with(['ofertaResiduo' => function($q) {
+        $user = $request->user();
+        
+        $query = $user->coletas()->with(['ofertaResiduo' => function($q) {
             $q->withTrashed();
-        }, 'ofertaResiduo.material', 'ofertaResiduo.endereco', 'ofertaResiduo.user']);
+        }, 'ofertaResiduo.material', 'ofertaResiduo.endereco', 'ofertaResiduo.user', 'coletor']);
+        
+        if ($request->has('status') && $request->status !== 'todos') {
+            $query->where('status', $request->status);
+        }
+        
+        $coletas = $query->paginate(9);
+        return ColetaResource::collection($coletas);
+    }
+
+    public function coletasFabrica(Request $request)
+    {
+        $user = $request->user();
+        
+        // Retorna coletas que estão atreladas a ofertas criadas por esta fábrica
+        $query = Coleta::whereHas('ofertaResiduo', function($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->with(['ofertaResiduo' => function($q) {
+            $q->withTrashed();
+        }, 'ofertaResiduo.material', 'ofertaResiduo.endereco', 'ofertaResiduo.user', 'coletor']);
         
         if ($request->has('status') && $request->status !== 'todos') {
             $query->where('status', $request->status);
