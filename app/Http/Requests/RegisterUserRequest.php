@@ -20,7 +20,7 @@ class RegisterUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
             'tipo_perfil' => ['required', new Enum(TipoPerfil::class)],
-            'documento' => ['required', 'string', 'max:20'],
+            'documento' => ['required', 'string', 'max:20', 'unique:users,documento'],
             'telefone' => ['required', 'string', 'max:20'],
         ];
     }

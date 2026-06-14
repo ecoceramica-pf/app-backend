@@ -14,7 +14,9 @@ class ColetaController extends Controller
 {
     public function minhasColetas(Request $request)
     {
-        $query = $request->user()->coletas()->with(['ofertaResiduo.material', 'ofertaResiduo.endereco', 'ofertaResiduo.user']);
+        $query = $request->user()->coletas()->with(['ofertaResiduo' => function($q) {
+            $q->withTrashed();
+        }, 'ofertaResiduo.material', 'ofertaResiduo.endereco', 'ofertaResiduo.user']);
         
         if ($request->has('status') && $request->status !== 'todos') {
             $query->where('status', $request->status);
@@ -33,6 +35,16 @@ class ColetaController extends Controller
         ]);
 
         return DB::transaction(function () use ($request, $oferta, $validated) {
+            // Validar se o usuário é coletor
+            if ($request->user()->tipo_perfil !== \App\Enums\TipoPerfil::Coletor) {
+                return $this->error('Apenas coletores podem agendar coletas.', 403);
+            }
+
+            // Validar se o criador da oferta não está tentando reservá-la
+            if ($request->user()->id === $oferta->user_id) {
+                return $this->error('Você não pode coletar sua própria oferta.', 403);
+            }
+
             // Lock na oferta
             $oferta = OfertaResiduo::where('id', $oferta->id)->lockForUpdate()->first();
 
@@ -169,7 +181,9 @@ class ColetaController extends Controller
     {
         Gate::authorize('view', $coleta);
         
-        $coleta->load('ofertaResiduo.material');
+        $coleta->load(['ofertaResiduo' => function($q) {
+            $q->withTrashed();
+        }, 'ofertaResiduo.material']);
         return $this->success(new ColetaResource($coleta));
     }
 
@@ -177,12 +191,14 @@ class ColetaController extends Controller
     {
         Gate::authorize('cancelar', $coleta);
 
-        // Voltar a oferta para disponível
-        $coleta->ofertaResiduo()->update(['status' => OfertaStatus::Disponivel]);
+        // Apenas reverte a oferta para disponível se a coleta estava ativa (pendente/agendado)
+        if (in_array($coleta->status, ['pendente', 'agendado'])) {
+            $coleta->ofertaResiduo()->update(['status' => OfertaStatus::Disponivel]);
+        }
         
-        $coleta->delete();
+        $coleta->update(['status' => 'cancelado']);
 
-        return $this->success(null, 'Coleta cancelada com sucesso.');
+        return $this->success(new ColetaResource($coleta), 'Coleta cancelada com sucesso.');
     }
 
     public function aprovar(Request $request, Coleta $coleta)

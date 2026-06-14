@@ -17,8 +17,8 @@ class ColetaPolicy
             return Response::deny('Acesso não autorizado.');
         }
 
-        if ($coleta->data_conclusao) {
-            return Response::deny('Não é possível cancelar uma coleta já concluída.');
+        if (in_array($coleta->status, ['cancelado', 'recusado', 'concluido'])) {
+            return Response::deny('Não é possível cancelar uma coleta já finalizada (concluída, recusada ou cancelada).');
         }
 
         return Response::allow();
