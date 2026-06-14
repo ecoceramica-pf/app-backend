@@ -22,7 +22,7 @@ class StoreOfertaImagemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'imagens' => 'required|array',
+            'imagens' => 'required|array|max:5',
             'imagens.*' => 'image|mimes:jpeg,png,jpg|max:5120' // 5MB max
         ];
     }

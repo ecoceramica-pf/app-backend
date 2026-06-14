@@ -11,17 +11,19 @@ use App\Http\Controllers\ColetaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DisponibilidadeController;
 
-// Auth Público
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/forgot-password', [\App\Http\Controllers\PasswordResetController::class, 'sendResetLinkEmail']);
-Route::post('/reset-password', [\App\Http\Controllers\PasswordResetController::class, 'reset']);
+// Auth Público com Throttle
+Route::middleware('throttle:6,1')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [\App\Http\Controllers\PasswordResetController::class, 'sendResetLinkEmail']);
+    Route::post('/reset-password', [\App\Http\Controllers\PasswordResetController::class, 'reset']);
+});
 
 // Materiais e Info Publica / Dashboard simples não exige auth segundo requisito geral ou pode ser publico dependendo da visão do frontend
 Route::get('/materiais', [MaterialController::class, 'index']);
 Route::get('/dashboard/impacto', [DashboardController::class, 'impacto']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/me', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -37,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/ofertas', [OfertaResiduoController::class, 'index']);
     Route::post('/ofertas', [OfertaResiduoController::class, 'store']);
     Route::post('/ofertas/{uuid}/imagens', [OfertaImagemController::class, 'store']);
+    Route::delete('/ofertas/imagens/{imagem}', [OfertaImagemController::class, 'destroy']);
     Route::get('/ofertas/{oferta}', [OfertaResiduoController::class, 'show']);
     Route::put('/ofertas/{oferta}', [OfertaResiduoController::class, 'update']);
     Route::delete('/ofertas/{oferta}', [OfertaResiduoController::class, 'destroy']);

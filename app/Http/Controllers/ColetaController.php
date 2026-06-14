@@ -52,8 +52,8 @@ class ColetaController extends Controller
                 return $this->error('Esta oferta não está disponível para coleta.', 400);
             }
 
-            // Buscar disponibilidade da fábrica
-            $fabrica = $oferta->user;
+            // Buscar disponibilidade da fábrica com lock para evitar Race Condition
+            $fabrica = \App\Models\User::where('id', $oferta->user_id)->lockForUpdate()->first();
             $disponibilidade = $fabrica->disponibilidade;
 
             if (!$disponibilidade) {

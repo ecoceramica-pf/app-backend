@@ -65,6 +65,10 @@ class OfertaResiduoController extends Controller
     {
         Gate::authorize('update', $oferta);
 
+        if (in_array($oferta->status, [OfertaStatus::EmProcesso, OfertaStatus::Concluido])) {
+            return $this->error('Não é possível editar uma oferta que já está em processo de coleta ou concluída.', 422);
+        }
+
         $oferta->update($request->validated());
 
         return $this->success(new OfertaResiduoResource($oferta), 'Oferta atualizada com sucesso.');
@@ -73,6 +77,11 @@ class OfertaResiduoController extends Controller
     public function destroy(Request $request, OfertaResiduo $oferta)
     {
         Gate::authorize('delete', $oferta);
+
+        $coletasAtivas = $oferta->coletas()->whereIn('status', ['pendente', 'agendado'])->exists();
+        if ($coletasAtivas) {
+            return $this->error('Não é possível excluir esta oferta pois existem coletas pendentes ou agendadas vinculadas a ela. Cancele as coletas primeiro.', 422);
+        }
 
         $oferta->delete();
 
