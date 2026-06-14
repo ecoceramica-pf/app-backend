@@ -13,12 +13,12 @@ class ColetaPolicy
      */
     public function cancelar(User $user, Coleta $coleta): Response
     {
-        if ($user->id !== $coleta->coletor_id) {
-            return Response::deny('Acesso não autorizado.');
+        if ($user->id !== $coleta->coletor_id && $user->id !== $coleta->ofertaResiduo->user_id) {
+            return Response::deny('Acesso não autorizado. Apenas o coletor ou a fábrica podem cancelar a coleta.');
         }
 
-        if ($coleta->data_conclusao) {
-            return Response::deny('Não é possível cancelar uma coleta já concluída.');
+        if (in_array($coleta->status, ['cancelado', 'recusado', 'concluido'])) {
+            return Response::deny('Não é possível cancelar uma coleta já finalizada (concluída, recusada ou cancelada).');
         }
 
         return Response::allow();

@@ -59,4 +59,9 @@ class Endereco extends Model
             }
         );
     }
+
+    public function ofertasResiduos()
+    {
+        return $this->hasMany(OfertaResiduo::class);
+    }
 }

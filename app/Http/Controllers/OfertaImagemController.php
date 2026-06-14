@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\OfertaResiduo;
+use App\Models\OfertaImagem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\StoreOfertaImagemRequest;
@@ -31,5 +32,19 @@ class OfertaImagemController extends Controller
             'message' => 'Imagens salvas com sucesso',
             'imagens' => \App\Http\Resources\OfertaImagemResource::collection(collect($savedImages))
         ], 201);
+    }
+
+    public function destroy(Request $request, OfertaImagem $imagem)
+    {
+        $oferta = $imagem->ofertaResiduo;
+        Gate::authorize('update', $oferta);
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($imagem->imagem)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($imagem->imagem);
+        }
+
+        $imagem->delete();
+
+        return $this->success(null, 'Imagem excluída com sucesso.');
     }
 }

@@ -62,6 +62,10 @@ class EnderecoController extends Controller
     {
         Gate::authorize('delete', $endereco);
 
+        if ($endereco->ofertasResiduos()->exists()) {
+            return $this->error('Não é possível excluir este endereço, pois ele já está vinculado a uma ou mais ofertas de resíduos.', 422);
+        }
+
         $endereco->delete();
 
         return $this->success(null, 'Endereço excluído com sucesso.');

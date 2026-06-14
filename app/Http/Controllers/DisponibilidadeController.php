@@ -180,7 +180,7 @@ class DisponibilidadeController extends Controller
         // Contar coletas já agendadas naquele dia
         $coletasNoDia = \App\Models\Coleta::where('oferta_residuo_id', $oferta->id)
             ->whereDate('data_agendamento', $dataDesejada->toDateString())
-            ->whereIn('status', ['pendente'])
+            ->whereIn('status', ['pendente', 'agendado'])
             ->count();
 
         // Na verdade o limite é por fábrica, não por oferta — contar todas as coletas da fábrica
@@ -188,7 +188,7 @@ class DisponibilidadeController extends Controller
             $q->where('user_id', $fabrica->id);
         })
             ->whereDate('data_agendamento', $dataDesejada->toDateString())
-            ->whereIn('status', ['pendente'])
+            ->whereIn('status', ['pendente', 'agendado'])
             ->count();
 
         if ($coletasFabricaNoDia >= $disponibilidade->max_coletas_dia) {

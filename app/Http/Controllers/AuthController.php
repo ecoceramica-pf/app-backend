@@ -25,8 +25,11 @@ class AuthController extends Controller
 
         Auth::login($user);
 
+        // $token = $user->createToken('auth_token')->plainTextToken;
+
         return $this->success([
-            'user' => new UserResource($user)
+            'user' => new UserResource($user),
+            // 'token' => $token,
         ], 'Usuário registrado com sucesso', 201);
     }
 
@@ -39,9 +42,11 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         $user = Auth::user();
+        // $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->success([
-            'user' => new UserResource($user)
+            'user' => new UserResource($user),
+            // 'token' => $token,
         ], 'Login realizado com sucesso');
     }
 
@@ -64,10 +69,6 @@ class AuthController extends Controller
     {
         $user = $request->user();
         $validated = $request->validated();
-
-        if (isset($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
-        }
 
         $user->update($validated);
 
