@@ -14,7 +14,7 @@ class OfertaResiduoController extends Controller
 {
     public function index(Request $request)
     {
-        $query = OfertaResiduo::with(['material', 'endereco', 'user']);
+        $query = OfertaResiduo::with(['material', 'endereco', 'user', 'ofertaImagens']);
 
         if ($request->has('material_id')) {
             $query->where('material_id', $request->material_id);
@@ -33,7 +33,7 @@ class OfertaResiduoController extends Controller
 
     public function minhasOfertas(Request $request)
     {
-        $query = $request->user()->ofertasResiduos()->with(['material', 'endereco', 'coleta.coletor', 'user']);
+        $query = $request->user()->ofertasResiduos()->with(['material', 'endereco', 'coleta.coletor', 'user', 'ofertaImagens']);
         
         if ($request->has('status') && $request->status !== 'todos') {
             $query->where('status', $request->status);
@@ -83,7 +83,14 @@ class OfertaResiduoController extends Controller
             return $this->error('Não é possível excluir esta oferta pois existem coletas pendentes ou agendadas vinculadas a ela. Cancele as coletas primeiro.', 422);
         }
 
-        $oferta->delete();
+        \Illuminate\Support\Facades\DB::transaction(function () use ($oferta) {
+            // Delete images in cascade to trigger the deleting event (soft delete only per user request)
+            foreach ($oferta->ofertaImagens as $imagem) {
+                $imagem->delete();
+            }
+
+            $oferta->delete();
+        });
 
         return $this->success(null, 'Oferta excluída com sucesso.');
     }
@@ -127,6 +134,10 @@ class OfertaResiduoController extends Controller
             $oferta->update([
                 'status' => $novoStatus
             ]);
+
+            if ($novoStatus === OfertaStatus::Concluido) {
+                // O cache dashboard_impacto agora é limpo automaticamente pelo model event em OfertaResiduo
+            }
 
             return $this->success(new OfertaResiduoResource($oferta), 'Status da oferta atualizado com sucesso.');
         });

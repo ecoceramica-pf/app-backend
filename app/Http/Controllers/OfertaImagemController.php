@@ -39,10 +39,6 @@ class OfertaImagemController extends Controller
         $oferta = $imagem->ofertaResiduo;
         Gate::authorize('update', $oferta);
 
-        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($imagem->imagem)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($imagem->imagem);
-        }
-
         $imagem->delete();
 
         return $this->success(null, 'Imagem excluída com sucesso.');

@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Coleta;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use App\Enums\TipoPerfil;
 
 class ColetaPolicy
 {
@@ -29,7 +30,7 @@ class ColetaPolicy
      */
     public function confirmarColetor(User $user, Coleta $coleta): Response
     {
-        if ($user->id !== $coleta->coletor_id) {
+        if ($user->tipo_perfil !== TipoPerfil::Coletor || $user->id !== $coleta->coletor_id) {
             return Response::deny('Acesso não autorizado.');
         }
 
@@ -41,7 +42,7 @@ class ColetaPolicy
      */
     public function confirmarFabrica(User $user, Coleta $coleta): Response
     {
-        if ($user->id !== $coleta->ofertaResiduo->user_id) {
+        if ($user->tipo_perfil !== TipoPerfil::Fabrica || $user->id !== $coleta->ofertaResiduo->user_id) {
             return Response::deny('Acesso não autorizado. Apenas o criador da oferta pode confirmar.');
         }
 
@@ -62,7 +63,7 @@ class ColetaPolicy
 
     public function aprovar(User $user, Coleta $coleta): Response
     {
-        if ($user->id !== $coleta->ofertaResiduo->user_id) {
+        if ($user->tipo_perfil !== TipoPerfil::Fabrica || $user->id !== $coleta->ofertaResiduo->user_id) {
             return Response::deny('Acesso não autorizado. Apenas o criador da oferta pode aprovar.');
         }
 
@@ -71,7 +72,7 @@ class ColetaPolicy
 
     public function recusar(User $user, Coleta $coleta): Response
     {
-        if ($user->id !== $coleta->ofertaResiduo->user_id) {
+        if ($user->tipo_perfil !== TipoPerfil::Fabrica || $user->id !== $coleta->ofertaResiduo->user_id) {
             return Response::deny('Acesso não autorizado. Apenas o criador da oferta pode recusar.');
         }
 

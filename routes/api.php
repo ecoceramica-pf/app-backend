@@ -25,6 +25,7 @@ Route::get('/materiais', [MaterialController::class, 'index']);
 Route::get('/dashboard/impacto', [DashboardController::class, 'impacto']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/dashboard/meu-impacto', [DashboardController::class, 'meuImpacto']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/me', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -42,39 +43,48 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/enderecos/{endereco}', [EnderecoController::class, 'update']);
     Route::delete('/enderecos/{endereco}', [EnderecoController::class, 'destroy']);
 
-    // Ofertas
+    // Ofertas gerais
     Route::get('/ofertas', [OfertaResiduoController::class, 'index']);
-    Route::post('/ofertas', [OfertaResiduoController::class, 'store']);
-    Route::post('/ofertas/{uuid}/imagens', [OfertaImagemController::class, 'store']);
-    Route::delete('/ofertas/imagens/{imagem}', [OfertaImagemController::class, 'destroy']);
     Route::get('/ofertas/{oferta}', [OfertaResiduoController::class, 'show']);
-    Route::put('/ofertas/{oferta}', [OfertaResiduoController::class, 'update']);
-    Route::delete('/ofertas/{oferta}', [OfertaResiduoController::class, 'destroy']);
-    Route::patch('/ofertas/{oferta}/status', [OfertaResiduoController::class, 'alterarStatus']);
-    Route::get('/minhas-ofertas', [OfertaResiduoController::class, 'minhasOfertas']);
 
-    // Coletas
-    Route::get('/minhas-coletas', [ColetaController::class, 'minhasColetas']);
-    Route::get('/coletas-fabrica', [ColetaController::class, 'coletasFabrica']);
+    // Coletas gerais (que ambos os perfis podem interagir)
     Route::get('/coletas/{coleta}', [ColetaController::class, 'show']);
-    Route::post('/ofertas/{oferta}/reservar', [ColetaController::class, 'reservar']);
     Route::post('/coletas/{coleta}/cancelar', [ColetaController::class, 'cancelar']);
-    Route::post('/coletas/{coleta}/aprovar', [ColetaController::class, 'aprovar']);
-    Route::post('/coletas/{coleta}/recusar', [ColetaController::class, 'recusar']);
-    Route::post('/coletas/{coleta}/confirmar-fabrica', [ColetaController::class, 'confirmarFabrica']);
-    Route::post('/coletas/{coleta}/confirmar-coletor', [ColetaController::class, 'confirmarColetor']);
 
-    // Disponibilidade da Fábrica
-    Route::get('/disponibilidade', [DisponibilidadeController::class, 'show']);
-    Route::put('/disponibilidade', [DisponibilidadeController::class, 'upsert']);
-    Route::get('/disponibilidade/faixas-horarios', [DisponibilidadeController::class, 'indexFaixas']);
-    Route::post('/disponibilidade/faixas-horarios', [DisponibilidadeController::class, 'storeFaixa']);
-    Route::delete('/disponibilidade/faixas-horarios/{faixa}', [DisponibilidadeController::class, 'destroyFaixa']);
-    Route::get('/disponibilidade/bloqueios', [DisponibilidadeController::class, 'indexBloqueios']);
-    Route::post('/disponibilidade/bloqueios', [DisponibilidadeController::class, 'storeBloqueio']);
-    Route::delete('/disponibilidade/bloqueios/{bloqueio}', [DisponibilidadeController::class, 'destroyBloqueio']);
+    // --- Rotas Exclusivas para Fábrica ---
+    Route::middleware('role:fabrica')->group(function () {
+        // Ofertas
+        Route::post('/ofertas', [OfertaResiduoController::class, 'store']);
+        Route::post('/ofertas/{uuid}/imagens', [OfertaImagemController::class, 'store']);
+        Route::delete('/ofertas/imagens/{imagem}', [OfertaImagemController::class, 'destroy']);
+        Route::put('/ofertas/{oferta}', [OfertaResiduoController::class, 'update']);
+        Route::delete('/ofertas/{oferta}', [OfertaResiduoController::class, 'destroy']);
+        Route::patch('/ofertas/{oferta}/status', [OfertaResiduoController::class, 'alterarStatus']);
+        Route::get('/minhas-ofertas', [OfertaResiduoController::class, 'minhasOfertas']);
 
-    // Slots disponíveis para agendamento (coletor)
-    Route::get('/ofertas/{oferta}/slots-disponiveis', [DisponibilidadeController::class, 'slotsDisponiveis']);
+        // Coletas (ações da fábrica)
+        Route::get('/coletas-fabrica', [ColetaController::class, 'coletasFabrica']);
+        Route::post('/coletas/{coleta}/aprovar', [ColetaController::class, 'aprovar']);
+        Route::post('/coletas/{coleta}/recusar', [ColetaController::class, 'recusar']);
+        Route::post('/coletas/{coleta}/confirmar-fabrica', [ColetaController::class, 'confirmarFabrica']);
+
+        // Disponibilidade da Fábrica
+        Route::get('/disponibilidade', [DisponibilidadeController::class, 'show']);
+        Route::put('/disponibilidade', [DisponibilidadeController::class, 'upsert']);
+        Route::get('/disponibilidade/faixas-horarios', [DisponibilidadeController::class, 'indexFaixas']);
+        Route::post('/disponibilidade/faixas-horarios', [DisponibilidadeController::class, 'storeFaixa']);
+        Route::delete('/disponibilidade/faixas-horarios/{faixa}', [DisponibilidadeController::class, 'destroyFaixa']);
+        Route::get('/disponibilidade/bloqueios', [DisponibilidadeController::class, 'indexBloqueios']);
+        Route::post('/disponibilidade/bloqueios', [DisponibilidadeController::class, 'storeBloqueio']);
+        Route::delete('/disponibilidade/bloqueios/{bloqueio}', [DisponibilidadeController::class, 'destroyBloqueio']);
+    });
+
+    // --- Rotas Exclusivas para Coletor ---
+    Route::middleware('role:coletor')->group(function () {
+        Route::get('/minhas-coletas', [ColetaController::class, 'minhasColetas']);
+        Route::post('/ofertas/{oferta}/reservar', [ColetaController::class, 'reservar']);
+        Route::post('/coletas/{coleta}/confirmar-coletor', [ColetaController::class, 'confirmarColetor']);
+        Route::get('/ofertas/{oferta}/slots-disponiveis', [DisponibilidadeController::class, 'slotsDisponiveis']);
+    });
 });
 
