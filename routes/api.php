@@ -25,6 +25,7 @@ Route::get('/materiais', [MaterialController::class, 'index']);
 Route::get('/dashboard/impacto', [DashboardController::class, 'impacto']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/dashboard/meu-impacto', [DashboardController::class, 'meuImpacto']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/me', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
