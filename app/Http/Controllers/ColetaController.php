@@ -108,30 +108,52 @@ class ColetaController extends Controller
                 );
             }
 
-            // 4. Verificar faixa de horário (se não for dia inteiro)
+            // 4. Verificar faixa de horário e slot exato (se não for dia inteiro)
             if (!$disponibilidade->isDiaInteiro()) {
                 $horaAgendamento = $dataAgendamento->format('H:i');
-                $dentroFaixa = $disponibilidade->faixasHorarios->contains(function ($faixa) use ($horaAgendamento) {
-                    $inicio = substr($faixa->hora_inicio, 0, 5);
-                    $fim = substr($faixa->hora_fim, 0, 5);
-                    return $horaAgendamento >= $inicio && $horaAgendamento <= $fim;
-                });
+                $duracaoMin = $disponibilidade->duracao_coleta_min?->value ?? 60;
+                
+                $slotValido = false;
+                foreach ($disponibilidade->faixasHorarios as $faixa) {
+                    $inicio = \Carbon\Carbon::parse($dataAgendamento->toDateString() . ' ' . $faixa->hora_inicio);
+                    $fim = \Carbon\Carbon::parse($dataAgendamento->toDateString() . ' ' . $faixa->hora_fim);
 
-                if (!$dentroFaixa) {
-                    return $this->error('O horário escolhido está fora das faixas disponíveis da fábrica.', 422);
+                    while ($inicio->copy()->addMinutes($duracaoMin)->lte($fim)) {
+                        if ($inicio->format('H:i') === $horaAgendamento) {
+                            $slotValido = true;
+                            break 2;
+                        }
+                        $inicio->addMinutes($duracaoMin);
+                    }
+                }
+
+                if (!$slotValido) {
+                    return $this->error('O horário escolhido é inválido ou está fora das faixas disponíveis da fábrica.', 422);
                 }
             }
 
-            // 5. Verificar limite de coletas no dia (global da fábrica)
-            $coletasFabricaNoDia = Coleta::whereHas('ofertaResiduo', function ($q) use ($fabrica) {
+            // 5. Verificar limite de coletas no dia (global da fábrica) e conflitos
+            $coletasAtivas = Coleta::whereHas('ofertaResiduo', function ($q) use ($fabrica) {
                 $q->where('user_id', $fabrica->id);
             })
                 ->whereDate('data_agendamento', $dataAgendamento->toDateString())
                 ->whereIn('status', ['pendente', 'agendado'])
-                ->count();
+                ->get();
 
-            if ($coletasFabricaNoDia >= $disponibilidade->max_coletas_dia) {
+            if ($coletasAtivas->count() >= $disponibilidade->max_coletas_dia) {
                 return $this->error('A fábrica atingiu o limite de coletas para este dia.', 422);
+            }
+
+            // 6. Verificar se o slot exato já não está tomado (apenas se não for dia inteiro)
+            if (!$disponibilidade->isDiaInteiro()) {
+                $horaAtual = $dataAgendamento->toDateTimeString();
+                $conflito = $coletasAtivas->contains(function ($c) use ($horaAtual) {
+                    return \Carbon\Carbon::parse($c->data_agendamento)->toDateTimeString() === $horaAtual;
+                });
+
+                if ($conflito) {
+                    return $this->error('Este horário exato já foi reservado por outro coletor.', 422);
+                }
             }
 
             // Criar a coleta com agendamento
@@ -167,6 +189,10 @@ class ColetaController extends Controller
         return DB::transaction(function () use ($coleta) {
             $coletaLock = Coleta::where('id', $coleta->id)->lockForUpdate()->first();
 
+            if ($coletaLock->confirmacao_fabrica) {
+                return $this->error('A fábrica já confirmou esta coleta.', 422);
+            }
+
             $coletaLock->update(['confirmacao_fabrica' => now()]);
 
             if ($coletaLock->confirmacao_coletor) {
@@ -192,6 +218,10 @@ class ColetaController extends Controller
 
         return DB::transaction(function () use ($coleta) {
             $coletaLock = Coleta::where('id', $coleta->id)->lockForUpdate()->first();
+
+            if ($coletaLock->confirmacao_coletor) {
+                return $this->error('O coletor já confirmou esta coleta.', 422);
+            }
 
             $coletaLock->update(['confirmacao_coletor' => now()]);
 

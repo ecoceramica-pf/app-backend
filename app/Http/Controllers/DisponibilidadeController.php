@@ -177,19 +177,15 @@ class DisponibilidadeController extends Controller
             return $this->success(['slots' => []], 'Não atende à antecedência mínima de ' . $disponibilidade->antecedencia_minima_dias . ' dia(s).');
         }
 
-        // Contar coletas já agendadas naquele dia
-        $coletasNoDia = \App\Models\Coleta::where('oferta_residuo_id', $oferta->id)
-            ->whereDate('data_agendamento', $dataDesejada->toDateString())
-            ->whereIn('status', ['pendente', 'agendado'])
-            ->count();
-
-        // Na verdade o limite é por fábrica, não por oferta — contar todas as coletas da fábrica
-        $coletasFabricaNoDia = \App\Models\Coleta::whereHas('ofertaResiduo', function ($q) use ($fabrica) {
+        // Buscar coletas ativas da fábrica no dia
+        $coletasAtivas = \App\Models\Coleta::whereHas('ofertaResiduo', function ($q) use ($fabrica) {
             $q->where('user_id', $fabrica->id);
         })
             ->whereDate('data_agendamento', $dataDesejada->toDateString())
             ->whereIn('status', ['pendente', 'agendado'])
-            ->count();
+            ->get();
+
+        $coletasFabricaNoDia = $coletasAtivas->count();
 
         if ($coletasFabricaNoDia >= $disponibilidade->max_coletas_dia) {
             return $this->success(['slots' => [], 'lotado' => true], 'Limite de coletas atingido para este dia.');
@@ -203,17 +199,37 @@ class DisponibilidadeController extends Controller
             ]);
         }
 
-        // Retornar faixas disponíveis
-        $faixas = $disponibilidade->faixasHorarios->map(function ($faixa) {
-            return [
-                'hora_inicio' => substr($faixa->hora_inicio, 0, 5),
-                'hora_fim'    => substr($faixa->hora_fim, 0, 5),
-            ];
-        });
+        // Fatiar as faixas em slots
+        $slotsLivres = [];
+        $duracaoMin = $disponibilidade->duracao_coleta_min?->value ?? 60; // fallback
+
+        foreach ($disponibilidade->faixasHorarios as $faixa) {
+            $inicio = \Carbon\Carbon::parse($dataDesejada->toDateString() . ' ' . $faixa->hora_inicio);
+            $fim = \Carbon\Carbon::parse($dataDesejada->toDateString() . ' ' . $faixa->hora_fim);
+
+            while ($inicio->copy()->addMinutes($duracaoMin)->lte($fim)) {
+                $slotFim = $inicio->copy()->addMinutes($duracaoMin);
+                
+                // Verificar se já existe coleta neste horário exato
+                $horaAtual = $inicio->toDateTimeString();
+                $conflito = $coletasAtivas->contains(function ($coleta) use ($horaAtual) {
+                    return \Carbon\Carbon::parse($coleta->data_agendamento)->toDateTimeString() === $horaAtual;
+                });
+
+                if (!$conflito) {
+                    $slotsLivres[] = [
+                        'hora_inicio' => $inicio->format('H:i'),
+                        'hora_fim'    => $slotFim->format('H:i')
+                    ];
+                }
+
+                $inicio->addMinutes($duracaoMin);
+            }
+        }
 
         return $this->success([
-            'slots' => $faixas,
-            'duracao_coleta_min' => $disponibilidade->duracao_coleta_min,
+            'slots' => $slotsLivres,
+            'duracao_coleta_min' => $duracaoMin,
             'coletas_restantes' => $disponibilidade->max_coletas_dia - $coletasFabricaNoDia,
         ]);
     }

@@ -27,7 +27,7 @@ class OfertaImagem extends Model
     {
         parent::boot();
 
-        static::deleting(function ($imagem) {
+        static::forceDeleting(function ($imagem) {
             if (\Illuminate\Support\Facades\Storage::disk('public')->exists($imagem->imagem)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($imagem->imagem);
             }
