@@ -175,6 +175,7 @@ class ColetaController extends Controller
                     'status' => 'concluido'
                 ]);
                 $coletaLock->ofertaResiduo()->update(['status' => OfertaStatus::Concluido]);
+                \Illuminate\Support\Facades\Cache::forget('dashboard_impacto');
             }
 
             return $this->success(new ColetaResource($coletaLock), 'Confirmação da fábrica registrada.');
@@ -200,6 +201,7 @@ class ColetaController extends Controller
                     'status' => 'concluido'
                 ]);
                 $coletaLock->ofertaResiduo()->update(['status' => OfertaStatus::Concluido]);
+                \Illuminate\Support\Facades\Cache::forget('dashboard_impacto');
             }
 
             return $this->success(new ColetaResource($coletaLock), 'Confirmação do coletor registrada.');

@@ -83,6 +83,11 @@ class OfertaResiduoController extends Controller
             return $this->error('Não é possível excluir esta oferta pois existem coletas pendentes ou agendadas vinculadas a ela. Cancele as coletas primeiro.', 422);
         }
 
+        // Delete images in cascade to trigger the deleting event which removes the physical file
+        foreach ($oferta->ofertaImagens as $imagem) {
+            $imagem->delete();
+        }
+
         $oferta->delete();
 
         return $this->success(null, 'Oferta excluída com sucesso.');
@@ -127,6 +132,10 @@ class OfertaResiduoController extends Controller
             $oferta->update([
                 'status' => $novoStatus
             ]);
+
+            if ($novoStatus === OfertaStatus::Concluido) {
+                \Illuminate\Support\Facades\Cache::forget('dashboard_impacto');
+            }
 
             return $this->success(new OfertaResiduoResource($oferta), 'Status da oferta atualizado com sucesso.');
         });

@@ -22,4 +22,15 @@ class OfertaImagem extends Model
     {
         return $this->belongsTo(OfertaResiduo::class);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($imagem) {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($imagem->imagem)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($imagem->imagem);
+            }
+        });
+    }
 }
