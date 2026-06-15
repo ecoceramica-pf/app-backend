@@ -61,4 +61,25 @@ class OfertaResiduo extends Model
             ->orderByRaw("CASE WHEN status IN ('pendente', 'agendado') THEN 0 ELSE 1 END")
             ->latest();
     }
+
+    protected static function booted()
+    {
+        static::saved(function ($oferta) {
+            if ($oferta->status === OfertaStatus::Concluido || $oferta->getOriginal('status') === OfertaStatus::Concluido) {
+                \Illuminate\Support\Facades\Cache::forget('dashboard_impacto');
+            }
+        });
+
+        static::deleted(function ($oferta) {
+            if ($oferta->status === OfertaStatus::Concluido) {
+                \Illuminate\Support\Facades\Cache::forget('dashboard_impacto');
+            }
+        });
+
+        static::restored(function ($oferta) {
+            if ($oferta->status === OfertaStatus::Concluido) {
+                \Illuminate\Support\Facades\Cache::forget('dashboard_impacto');
+            }
+        });
+    }
 }

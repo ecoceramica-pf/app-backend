@@ -193,18 +193,23 @@ class ColetaController extends Controller
                 return $this->error('A fábrica já confirmou esta coleta.', 422);
             }
 
-            $coletaLock->update(['confirmacao_fabrica' => now()]);
+            $coletaLock->update([
+                'confirmacao_fabrica' => now(),
+                'data_conclusao' => now(),
+                'status' => 'concluido'
+            ]);
 
-            if ($coletaLock->confirmacao_coletor) {
-                $coletaLock->update([
-                    'data_conclusao' => now(),
-                    'status' => 'concluido'
-                ]);
-                $coletaLock->ofertaResiduo()->update(['status' => OfertaStatus::Concluido]);
-                \Illuminate\Support\Facades\Cache::forget('dashboard_impacto');
-            }
+            $coletaLock->ofertaResiduo()->update(['status' => OfertaStatus::Concluido]);
+            // O cache dashboard_impacto agora é limpo automaticamente pelo model event em OfertaResiduo
 
-            return $this->success(new ColetaResource($coletaLock), 'Confirmação da fábrica registrada.');
+            // Notificar coletor sobre a conclusão
+            $coletaLock->coletor->notify(new ColetaStatusNotification(
+                "A coleta de {$coletaLock->ofertaResiduo->material->nome} foi concluída com sucesso pela fábrica!",
+                $coletaLock->id,
+                'concluido'
+            ));
+
+            return $this->success(new ColetaResource($coletaLock), 'Confirmação da fábrica registrada e coleta concluída.');
         });
     }
 
@@ -231,7 +236,7 @@ class ColetaController extends Controller
                     'status' => 'concluido'
                 ]);
                 $coletaLock->ofertaResiduo()->update(['status' => OfertaStatus::Concluido]);
-                \Illuminate\Support\Facades\Cache::forget('dashboard_impacto');
+                // O cache dashboard_impacto agora é limpo automaticamente pelo model event em OfertaResiduo
             }
 
             return $this->success(new ColetaResource($coletaLock), 'Confirmação do coletor registrada.');

@@ -136,7 +136,7 @@ class OfertaResiduoController extends Controller
             ]);
 
             if ($novoStatus === OfertaStatus::Concluido) {
-                \Illuminate\Support\Facades\Cache::forget('dashboard_impacto');
+                // O cache dashboard_impacto agora é limpo automaticamente pelo model event em OfertaResiduo
             }
 
             return $this->success(new OfertaResiduoResource($oferta), 'Status da oferta atualizado com sucesso.');
